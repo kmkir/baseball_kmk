@@ -7,12 +7,13 @@
 //
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB5tPPaSdLXoJ9_v5AOZl0IP8OisgWt-_c",
+  authDomain: "baseball-score-app-kmk.firebaseapp.com",
+  projectId: "baseball-score-app-kmk",
+  storageBucket: "baseball-score-app-kmk.firebasestorage.app",
+  messagingSenderId: "852482098028",
+  appId: "1:852482098028:web:4acbf8e6b3301efcc8a949",
+  measurementId: "G-39FQP0PPD9"
 };
 
 // Firebase初期化
