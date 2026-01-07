@@ -371,89 +371,81 @@ const PlayerManagementView = {
     
     renderBattingStats(team, players) {
         return `
-            <div class="stats-cards-container">
-                ${players.map(player => {
-                    const stats = calculatePlayerBattingStats(team, player.id);
-                    return `
-                        <div class="stats-card-item" onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
-                            <div class="stats-card-header">
-                                <span class="stats-card-number">#${player.number || '-'}</span>
-                                <span class="stats-card-name">${player.name}</span>
-                            </div>
-                            <div class="stats-card-grid">
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.avg}</div>
-                                    <div class="stats-card-label">打率</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.obp}</div>
-                                    <div class="stats-card-label">出塁率</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.ops}</div>
-                                    <div class="stats-card-label">OPS</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.hits}</div>
-                                    <div class="stats-card-label">安打</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.homeRuns}</div>
-                                    <div class="stats-card-label">HR</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.rbis}</div>
-                                    <div class="stats-card-label">打点</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
+            <div class="card" style="margin:12px;overflow-x:auto;">
+                <table class="stats-table-new">
+                    <thead>
+                        <tr>
+                            <th class="sticky-col">選手</th>
+                            <th>打率</th>
+                            <th>出塁</th>
+                            <th>OPS</th>
+                            <th>安打</th>
+                            <th>HR</th>
+                            <th>打点</th>
+                            <th>盗塁</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${players.map(player => {
+                            const stats = calculatePlayerBattingStats(team, player.id);
+                            return `
+                                <tr onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
+                                    <td class="sticky-col player-name-cell">
+                                        <span class="table-player-number">#${player.number || '-'}</span>
+                                        <span class="table-player-name">${player.name}</span>
+                                    </td>
+                                    <td class="stat-highlight">${stats.avg}</td>
+                                    <td>${stats.obp}</td>
+                                    <td>${stats.ops}</td>
+                                    <td>${stats.hits}</td>
+                                    <td>${stats.homeRuns}</td>
+                                    <td>${stats.rbis}</td>
+                                    <td>${stats.stolenBases}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
             </div>
         `;
     },
     
     renderPitchingStats(team, players) {
         return `
-            <div class="stats-cards-container">
-                ${players.map(player => {
-                    const stats = calculatePlayerPitchingStats(team, player.id);
-                    return `
-                        <div class="stats-card-item" onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
-                            <div class="stats-card-header">
-                                <span class="stats-card-number">#${player.number || '-'}</span>
-                                <span class="stats-card-name">${player.name}</span>
-                                ${!player.isPitcher ? '<span class="badge-small">野手</span>' : ''}
-                            </div>
-                            <div class="stats-card-grid">
-                                <div class="stats-card-stat highlight">
-                                    <div class="stats-card-value">${stats.era}</div>
-                                    <div class="stats-card-label">防御率</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.appearances}</div>
-                                    <div class="stats-card-label">登板</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.inningsPitchedDisplay}</div>
-                                    <div class="stats-card-label">投球回</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.strikeouts}</div>
-                                    <div class="stats-card-label">奪三振</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.runsAllowed}</div>
-                                    <div class="stats-card-label">失点</div>
-                                </div>
-                                <div class="stats-card-stat">
-                                    <div class="stats-card-value">${stats.earnedRuns}</div>
-                                    <div class="stats-card-label">自責点</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
+            <div class="card" style="margin:12px;overflow-x:auto;">
+                <table class="stats-table-new">
+                    <thead>
+                        <tr>
+                            <th class="sticky-col">選手</th>
+                            <th>防御率</th>
+                            <th>登板</th>
+                            <th>投球回</th>
+                            <th>奪三振</th>
+                            <th>失点</th>
+                            <th>自責</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${players.map(player => {
+                            const stats = calculatePlayerPitchingStats(team, player.id);
+                            return `
+                                <tr onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
+                                    <td class="sticky-col player-name-cell">
+                                        <span class="table-player-number">#${player.number || '-'}</span>
+                                        <span class="table-player-name">${player.name}</span>
+                                        ${!player.isPitcher ? '<span class="table-badge">野手</span>' : ''}
+                                    </td>
+                                    <td class="stat-highlight">${stats.era}</td>
+                                    <td>${stats.appearances}</td>
+                                    <td>${stats.inningsPitchedDisplay}</td>
+                                    <td>${stats.strikeouts}</td>
+                                    <td>${stats.runsAllowed}</td>
+                                    <td>${stats.earnedRuns}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
             </div>
         `;
     },
@@ -884,54 +876,79 @@ const GameSetupView = {
         const showTournament = this.gameData.gameType === '公式戦';
         
         return `
-            <div class="card">
-                <div class="card-title">試合情報</div>
-                <div class="form-group"><label class="form-label">日付</label><input type="date" id="gameDate" class="form-input" value="${this.gameData.date || today}"></div>
-                <div class="form-group">
-                    <label class="form-label">種別</label>
-                    <select id="gameType" class="form-select" onchange="GameSetupView.onGameTypeChange()">
-                        <option value="練習試合" ${this.gameData.gameType !== '公式戦' ? 'selected' : ''}>練習試合</option>
-                        <option value="公式戦" ${this.gameData.gameType === '公式戦' ? 'selected' : ''}>公式戦</option>
-                    </select>
-                </div>
-                <div id="tournamentFields" style="${showTournament ? '' : 'display:none;'}">
-                    <div class="form-group">
-                        <label class="form-label">大会名</label>
-                        <input type="text" id="tournament" class="form-input" placeholder="大会名を入力" value="${this.gameData.tournament || ''}">
-                        ${tournaments.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${tournaments.slice(0, 5).map(t => `<button type="button" class="btn btn-small btn-outline" onclick="document.getElementById('tournament').value='${t}'" style="width:auto;">${t}</button>`).join('')}</div>` : ''}
+            <div class="setup-section">
+                <div class="setup-section-title">📅 日付・種別</div>
+                <div class="setup-card">
+                    <div class="setup-row">
+                        <label class="setup-label">日付</label>
+                        <input type="date" id="gameDate" class="setup-input" value="${this.gameData.date || today}">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">回戦</label>
-                        <select id="round" class="form-select">
-                            <option value="">選択してください</option>
-                            <option value="1回戦" ${this.gameData.round === '1回戦' ? 'selected' : ''}>1回戦</option>
-                            <option value="2回戦" ${this.gameData.round === '2回戦' ? 'selected' : ''}>2回戦</option>
-                            <option value="3回戦" ${this.gameData.round === '3回戦' ? 'selected' : ''}>3回戦</option>
-                            <option value="準々決勝" ${this.gameData.round === '準々決勝' ? 'selected' : ''}>準々決勝</option>
-                            <option value="準決勝" ${this.gameData.round === '準決勝' ? 'selected' : ''}>準決勝</option>
-                            <option value="決勝" ${this.gameData.round === '決勝' ? 'selected' : ''}>決勝</option>
-                        </select>
+                    <div class="setup-row">
+                        <label class="setup-label">種別</label>
+                        <div class="setup-toggle-group">
+                            <button type="button" class="setup-toggle-btn ${this.gameData.gameType !== '公式戦' ? 'active practice' : ''}" onclick="GameSetupView.setGameType('練習試合')">
+                                <span class="toggle-icon">⚾</span>
+                                <span>練習試合</span>
+                            </button>
+                            <button type="button" class="setup-toggle-btn ${this.gameData.gameType === '公式戦' ? 'active official' : ''}" onclick="GameSetupView.setGameType('公式戦')">
+                                <span class="toggle-icon">🏆</span>
+                                <span>公式戦</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">場所</label>
-                    <input type="text" id="location" class="form-input" placeholder="場所を入力" value="${this.gameData.location || ''}">
-                    ${locations.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${locations.slice(0, 5).map(loc => `<button type="button" class="btn btn-small btn-outline" onclick="document.getElementById('location').value='${loc}'" style="width:auto;">${loc}</button>`).join('')}</div>` : ''}
-                </div>
-                <div class="form-group">
-                    <label class="form-label">対戦相手</label>
-                    <input type="text" id="opponent" class="form-input" placeholder="対戦相手を入力" value="${this.gameData.opponent || ''}">
-                    ${opponents.length > 0 ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${opponents.slice(0, 5).map(opp => `<button type="button" class="btn btn-small btn-outline" onclick="document.getElementById('opponent').value='${opp}'" style="width:auto;">${opp}</button>`).join('')}</div>` : ''}
-                </div>
-                <div class="form-group">
-                    <label class="form-label">先攻・後攻</label>
-                    <div class="batting-order-toggle">
-                        <button type="button" class="toggle-btn ${this.isFirstBatting ? 'active' : ''}" onclick="GameSetupView.setFirstBatting(true)">先攻</button>
-                        <button type="button" class="toggle-btn ${!this.isFirstBatting ? 'active' : ''}" onclick="GameSetupView.setFirstBatting(false)">後攻</button>
+                    <div id="tournamentFields" style="${showTournament ? '' : 'display:none;'}">
+                        <div class="setup-row">
+                            <label class="setup-label">大会名</label>
+                            <input type="text" id="tournament" class="setup-input" placeholder="大会名を入力" value="${this.gameData.tournament || ''}">
+                            ${tournaments.length > 0 ? `<div class="quick-select">${tournaments.slice(0, 3).map(t => `<button type="button" class="quick-btn" onclick="document.getElementById('tournament').value='${t}'">${t}</button>`).join('')}</div>` : ''}
+                        </div>
+                        <div class="setup-row">
+                            <label class="setup-label">回戦</label>
+                            <div class="round-buttons">
+                                ${['1回戦', '2回戦', '3回戦', '準々決勝', '準決勝', '決勝'].map(r => `
+                                    <button type="button" class="round-btn ${this.gameData.round === r ? 'active' : ''}" onclick="GameSetupView.setRound('${r}')">${r}</button>
+                                `).join('')}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="p-12"><button class="btn btn-primary btn-large" onclick="GameSetupView.nextStep()">次へ：打順設定 →</button></div>
+            
+            <div class="setup-section">
+                <div class="setup-section-title">📍 場所・対戦相手</div>
+                <div class="setup-card">
+                    <div class="setup-row">
+                        <label class="setup-label">場所</label>
+                        <input type="text" id="location" class="setup-input" placeholder="場所を入力" value="${this.gameData.location || ''}">
+                        ${locations.length > 0 ? `<div class="quick-select">${locations.slice(0, 3).map(loc => `<button type="button" class="quick-btn" onclick="document.getElementById('location').value='${loc}'">${loc}</button>`).join('')}</div>` : ''}
+                    </div>
+                    <div class="setup-row">
+                        <label class="setup-label">対戦相手</label>
+                        <input type="text" id="opponent" class="setup-input" placeholder="対戦相手を入力" value="${this.gameData.opponent || ''}">
+                        ${opponents.length > 0 ? `<div class="quick-select">${opponents.slice(0, 3).map(opp => `<button type="button" class="quick-btn" onclick="document.getElementById('opponent').value='${opp}'">${opp}</button>`).join('')}</div>` : ''}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setup-section">
+                <div class="setup-section-title">⚾ 先攻・後攻</div>
+                <div class="batting-order-select">
+                    <button type="button" class="batting-select-btn ${this.isFirstBatting ? 'active first' : ''}" onclick="GameSetupView.setFirstBatting(true)">
+                        <div class="batting-select-icon">🏃</div>
+                        <div class="batting-select-label">先攻</div>
+                        <div class="batting-select-desc">先に攻撃</div>
+                    </button>
+                    <button type="button" class="batting-select-btn ${!this.isFirstBatting ? 'active second' : ''}" onclick="GameSetupView.setFirstBatting(false)">
+                        <div class="batting-select-icon">🛡️</div>
+                        <div class="batting-select-label">後攻</div>
+                        <div class="batting-select-desc">先に守備</div>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="setup-footer">
+                <button class="btn btn-primary btn-large" onclick="GameSetupView.nextStep()">次へ：打順設定 →</button>
+            </div>
         `;
     },
     
@@ -939,39 +956,62 @@ const GameSetupView = {
         const players = sortByJapanese([...(team.players || [])], 'name');
         const availablePlayers = players.filter(p => !this.battingOrder.find(b => b.id === p.id));
         const isFull = this.battingOrder.length >= 9;
+        
         return `
-            <div class="card">
-                <div class="card-title">打順を設定（最大9人）</div>
-                <div class="batting-order-counter ${isFull ? 'full' : ''}">${this.battingOrder.length}/9人</div>
-                ${this.battingOrder.length === 0 ? `<div style="text-align:center;color:var(--text-secondary);padding:20px;">選手を追加してください</div>` : `
-                    <div class="batting-order-list">
-                        ${this.battingOrder.map((player, index) => `
-                            <div class="batting-order-item-new">
-                                <div class="batting-order-num">${index + 1}</div>
-                                <div class="batting-order-player">
-                                    <span class="batting-order-player-number">#${player.number || '-'}</span>
-                                    <span class="batting-order-player-name">${player.name}</span>
+            <div class="lineup-container">
+                <div class="lineup-section">
+                    <div class="lineup-header">
+                        <span class="lineup-title">スタメン</span>
+                        <span class="lineup-count ${isFull ? 'full' : ''}">${this.battingOrder.length}/9</span>
+                    </div>
+                    <div class="lineup-slots" id="lineupSlots">
+                        ${this.battingOrder.length === 0 ? `
+                            <div class="lineup-empty">
+                                <div class="lineup-empty-icon">👆</div>
+                                <div>下から選手をドラッグ<br>または タップして追加</div>
+                            </div>
+                        ` : this.battingOrder.map((player, index) => `
+                            <div class="lineup-slot filled" draggable="true" 
+                                 ondragstart="GameSetupView.dragStart(event, ${index}, 'lineup')"
+                                 ondragover="GameSetupView.dragOver(event)"
+                                 ondrop="GameSetupView.dropOnSlot(event, ${index})">
+                                <div class="slot-order">${index + 1}</div>
+                                <div class="slot-player">
+                                    <span class="slot-number">#${player.number || '-'}</span>
+                                    <span class="slot-name">${player.name}</span>
                                 </div>
-                                <button class="batting-order-remove-btn" onclick="GameSetupView.removeFromOrder(${index})">✕</button>
+                                <button class="slot-remove" onclick="GameSetupView.removeFromOrder(${index})">✕</button>
                             </div>
                         `).join('')}
                     </div>
-                `}
-            </div>
-            ${!isFull && availablePlayers.length > 0 ? `
-                <div class="card">
-                    <div class="card-title">選手を追加</div>
-                    <div class="player-select-grid">${availablePlayers.map(player => `
-                        <div class="player-select-item" onclick="GameSetupView.addToOrder('${player.id}')">
-                            <span class="player-select-number">#${player.number || '-'}</span>
-                            <span class="player-select-name">${player.name}</span>
-                        </div>
-                    `).join('')}</div>
                 </div>
-            ` : ''}
-            <div class="p-12" style="display:flex;gap:10px;">
-                <button class="btn btn-secondary btn-large" onclick="GameSetupView.prevStep()" style="flex:1;">← 戻る</button>
-                <button class="btn btn-primary btn-large" onclick="GameSetupView.nextStep()" style="flex:2;" ${this.battingOrder.length === 0 ? 'disabled' : ''}>次へ：投手選択 →</button>
+                
+                <div class="bench-section">
+                    <div class="bench-header">
+                        <span class="bench-title">控え選手</span>
+                        <span class="bench-hint">タップまたはドラッグで追加</span>
+                    </div>
+                    <div class="bench-players" id="benchPlayers"
+                         ondragover="GameSetupView.dragOver(event)"
+                         ondrop="GameSetupView.dropOnBench(event)">
+                        ${availablePlayers.length === 0 ? `
+                            <div class="bench-empty">全選手がスタメンです</div>
+                        ` : availablePlayers.map(player => `
+                            <div class="bench-player" draggable="true"
+                                 ondragstart="GameSetupView.dragStart(event, '${player.id}', 'bench')"
+                                 onclick="GameSetupView.addToOrder('${player.id}')">
+                                <span class="bench-player-number">#${player.number || '-'}</span>
+                                <span class="bench-player-name">${player.name}</span>
+                                ${player.isPitcher ? '<span class="bench-player-badge">投</span>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setup-footer">
+                <button class="btn btn-secondary" onclick="GameSetupView.prevStep()" style="flex:1;">← 戻る</button>
+                <button class="btn btn-primary" onclick="GameSetupView.nextStep()" style="flex:2;" ${this.battingOrder.length === 0 ? 'disabled' : ''}>次へ：投手選択 →</button>
             </div>
         `;
     },
@@ -1075,6 +1115,18 @@ const GameSetupView = {
         document.getElementById('tournamentFields').style.display = gameType === '公式戦' ? '' : 'none';
     },
     
+    setGameType(type) {
+        this.saveCurrentInputs();
+        this.gameData.gameType = type;
+        App.render();
+    },
+    
+    setRound(round) {
+        this.saveCurrentInputs();
+        this.gameData.round = round;
+        App.render();
+    },
+    
     setFirstBatting(isFirst) { 
         // 現在の入力値を保存
         this.saveCurrentInputs();
@@ -1084,18 +1136,14 @@ const GameSetupView = {
     
     saveCurrentInputs() {
         const dateEl = document.getElementById('gameDate');
-        const gameTypeEl = document.getElementById('gameType');
         const locationEl = document.getElementById('location');
         const opponentEl = document.getElementById('opponent');
         const tournamentEl = document.getElementById('tournament');
-        const roundEl = document.getElementById('round');
         
         if (dateEl) this.gameData.date = dateEl.value;
-        if (gameTypeEl) this.gameData.gameType = gameTypeEl.value;
         if (locationEl) this.gameData.location = locationEl.value;
         if (opponentEl) this.gameData.opponent = opponentEl.value;
         if (tournamentEl) this.gameData.tournament = tournamentEl.value;
-        if (roundEl) this.gameData.round = roundEl.value;
     },
     
     goBack() {
@@ -1106,19 +1154,75 @@ const GameSetupView = {
     nextStep() {
         if (this.step === 1) {
             const date = document.getElementById('gameDate').value;
-            const gameType = document.getElementById('gameType').value;
             const location = document.getElementById('location').value.trim();
             const opponent = document.getElementById('opponent').value.trim();
             const tournament = document.getElementById('tournament')?.value.trim() || '';
-            const round = document.getElementById('round')?.value || '';
             if (!date || !location || !opponent) { alert('日付・場所・対戦相手を入力してください'); return; }
-            this.gameData = { date, gameType, location, opponent, tournament, round };
+            this.gameData.date = date;
+            this.gameData.location = location;
+            this.gameData.opponent = opponent;
+            this.gameData.tournament = tournament;
+            if (!this.gameData.gameType) this.gameData.gameType = '練習試合';
         }
         this.step++;
         App.render();
     },
     
     prevStep() { this.step--; App.render(); },
+    
+    // ドラッグ&ドロップ関連
+    dragData: null,
+    
+    dragStart(event, data, source) {
+        this.dragData = { data, source };
+        event.target.classList.add('dragging');
+        event.dataTransfer.effectAllowed = 'move';
+    },
+    
+    dragOver(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    },
+    
+    dropOnSlot(event, targetIndex) {
+        event.preventDefault();
+        if (!this.dragData) return;
+        
+        const { data, source } = this.dragData;
+        
+        if (source === 'bench') {
+            // ベンチからスロットへ
+            const player = App.currentTeam.players.find(p => p.id === data);
+            if (player && !this.battingOrder.find(b => b.id === data)) {
+                this.battingOrder.splice(targetIndex, 0, player);
+            }
+        } else if (source === 'lineup') {
+            // ラインナップ内での並び替え
+            const fromIndex = data;
+            if (fromIndex !== targetIndex) {
+                const [moved] = this.battingOrder.splice(fromIndex, 1);
+                this.battingOrder.splice(targetIndex > fromIndex ? targetIndex - 1 : targetIndex, 0, moved);
+            }
+        }
+        
+        this.dragData = null;
+        App.render();
+    },
+    
+    dropOnBench(event) {
+        event.preventDefault();
+        if (!this.dragData) return;
+        
+        const { data, source } = this.dragData;
+        
+        if (source === 'lineup') {
+            // ラインナップからベンチへ（削除）
+            this.battingOrder.splice(data, 1);
+        }
+        
+        this.dragData = null;
+        App.render();
+    },
     
     addToOrder(playerId) {
         if (this.battingOrder.length >= 9) { alert('打順は9人までです'); return; }
@@ -1257,76 +1361,117 @@ const GameScoreView = {
         const pendingSteals = game.pendingSteals || 0;
         
         return `
-            <div class="inning-status-bar">
-                <div class="inning-number">${game.currentInning}回</div>
-                <div class="inning-phase attack">攻撃中</div>
-                <div class="out-indicators">
-                    ${[0,1,2].map(i => `<div class="out-indicator ${i < game.currentOuts ? 'active' : ''}"></div>`).join('')}
-                    <span class="out-text">OUT</span>
+            <div class="game-status-header attack">
+                <div class="status-inning">
+                    <span class="status-inning-num">${game.currentInning}</span>
+                    <span class="status-inning-label">回</span>
+                </div>
+                <div class="status-phase">
+                    <span class="status-phase-icon">⚾</span>
+                    <span class="status-phase-text">攻撃中</span>
+                </div>
+                <div class="status-outs">
+                    ${[0,1,2].map(i => `<div class="status-out-dot ${i < game.currentOuts ? 'active' : ''}"></div>`).join('')}
+                    <span class="status-out-label">${game.currentOuts}OUT</span>
                 </div>
             </div>
             
-            ${(currentInning.atBats || []).length > 0 ? `
-                <div class="at-bat-history">
-                    <div class="at-bat-history-title">このイニングの打席（タップで編集）</div>
-                    <div class="at-bat-history-list">
-                        ${(currentInning.atBats || []).map((ab, idx) => `
-                            <div class="at-bat-history-item" onclick="GameScoreView.showEditAtBatModal(${idx})">
-                                <span class="at-bat-history-name">${ab.playerName}</span>
-                                <span class="at-bat-history-result ${AtBatResults[ab.result].type}">${AtBatResults[ab.result].icon}</span>
-                                ${ab.rbi > 0 ? `<span class="at-bat-history-badge rbi">${ab.rbi}打点</span>` : ''}
-                                ${ab.stolenBases > 0 ? `<span class="at-bat-history-badge steal">${ab.stolenBases}盗</span>` : ''}
-                            </div>
-                        `).join('')}
+            <div class="game-main-content">
+                ${(currentInning.atBats || []).length > 0 ? `
+                    <div class="inning-history">
+                        <div class="history-label">このイニング</div>
+                        <div class="history-scroll">
+                            ${(currentInning.atBats || []).map((ab, idx) => `
+                                <div class="history-item ${AtBatResults[ab.result].type}" onclick="GameScoreView.showEditAtBatModal(${idx})">
+                                    <div class="history-name">${ab.playerName}</div>
+                                    <div class="history-result">${AtBatResults[ab.result].icon}</div>
+                                    ${ab.rbi > 0 ? `<div class="history-badge rbi">${ab.rbi}</div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                </div>
-            ` : ''}
-            
-            <div class="current-batter-box">
-                <div class="current-batter-label">現在の打者</div>
-                <div class="current-batter-info">
-                    <span class="current-batter-order">${game.currentBatterIndex + 1}番</span>
-                    <span class="current-batter-name">${currentBatter ? currentBatter.name : '---'}</span>
-                </div>
-            </div>
-            
-            <div class="batting-input-section">
-                <div class="batting-buttons-grid">
-                    <button class="batting-btn-large hit" onclick="GameScoreView.recordAtBat('single')">ヒット</button>
-                    <button class="batting-btn-large hit" onclick="GameScoreView.recordAtBat('double')">2塁打</button>
-                    <button class="batting-btn-large hit" onclick="GameScoreView.recordAtBat('triple')">3塁打</button>
-                    <button class="batting-btn-large hit" onclick="GameScoreView.recordAtBat('homeRun')">HR</button>
-                    <button class="batting-btn-large walk" onclick="GameScoreView.recordAtBat('walk')">四死球</button>
-                    <button class="batting-btn-large walk" onclick="GameScoreView.recordAtBat('error')">エラー</button>
-                    <button class="batting-btn-large sacrifice" onclick="GameScoreView.recordAtBat('sacrifice')">犠牲</button>
-                    <button class="batting-btn-large out" onclick="GameScoreView.recordAtBat('out')">アウト</button>
-                    <button class="batting-btn-large out" onclick="GameScoreView.recordAtBat('doublePlay')">併殺</button>
-                    <button class="batting-btn-large out" onclick="GameScoreView.recordAtBat('triplePlay')">三殺</button>
+                ` : ''}
+                
+                <div class="batter-display">
+                    <div class="batter-order">${game.currentBatterIndex + 1}番</div>
+                    <div class="batter-name">${currentBatter ? currentBatter.name : '---'}</div>
                 </div>
                 
-                <div class="stats-input-row">
-                    <div class="stats-input-item">
-                        <span class="stats-input-label">打点</span>
-                        <div class="stats-input-controls">
-                            <button class="stats-input-btn minus" onclick="GameScoreView.adjustPending('rbi', -1)">−</button>
-                            <span class="stats-input-value">${pendingRbi}</span>
-                            <button class="stats-input-btn plus" onclick="GameScoreView.adjustPending('rbi', 1)">＋</button>
+                <div class="result-buttons">
+                    <div class="result-row hit-row">
+                        <button class="result-btn hit" onclick="GameScoreView.recordAtBat('single')">
+                            <span class="result-icon">🔵</span>
+                            <span class="result-text">ヒット</span>
+                        </button>
+                        <button class="result-btn hit" onclick="GameScoreView.recordAtBat('double')">
+                            <span class="result-icon">🔵</span>
+                            <span class="result-text">2塁打</span>
+                        </button>
+                        <button class="result-btn hit" onclick="GameScoreView.recordAtBat('triple')">
+                            <span class="result-icon">🔵</span>
+                            <span class="result-text">3塁打</span>
+                        </button>
+                        <button class="result-btn hit hr" onclick="GameScoreView.recordAtBat('homeRun')">
+                            <span class="result-icon">💥</span>
+                            <span class="result-text">HR</span>
+                        </button>
+                    </div>
+                    <div class="result-row other-row">
+                        <button class="result-btn walk" onclick="GameScoreView.recordAtBat('walk')">
+                            <span class="result-icon">🟡</span>
+                            <span class="result-text">四死球</span>
+                        </button>
+                        <button class="result-btn walk" onclick="GameScoreView.recordAtBat('error')">
+                            <span class="result-icon">🟡</span>
+                            <span class="result-text">エラー</span>
+                        </button>
+                        <button class="result-btn sacrifice" onclick="GameScoreView.recordAtBat('sacrifice')">
+                            <span class="result-icon">🟠</span>
+                            <span class="result-text">犠牲</span>
+                        </button>
+                    </div>
+                    <div class="result-row out-row">
+                        <button class="result-btn out" onclick="GameScoreView.recordAtBat('out')">
+                            <span class="result-icon">🔴</span>
+                            <span class="result-text">アウト</span>
+                        </button>
+                        <button class="result-btn out" onclick="GameScoreView.recordAtBat('doublePlay')">
+                            <span class="result-icon">🔴</span>
+                            <span class="result-text">併殺</span>
+                        </button>
+                        <button class="result-btn out" onclick="GameScoreView.recordAtBat('triplePlay')">
+                            <span class="result-icon">🔴</span>
+                            <span class="result-text">三殺</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="extra-stats">
+                    <div class="extra-stat-box">
+                        <div class="extra-stat-label">打点</div>
+                        <div class="extra-stat-control">
+                            <button class="extra-btn minus" onclick="GameScoreView.adjustPending('rbi', -1)">−</button>
+                            <span class="extra-value">${pendingRbi}</span>
+                            <button class="extra-btn plus" onclick="GameScoreView.adjustPending('rbi', 1)">＋</button>
                         </div>
                     </div>
-                    <div class="stats-input-item">
-                        <span class="stats-input-label">盗塁</span>
-                        <div class="stats-input-controls">
-                            <button class="stats-input-btn minus" onclick="GameScoreView.adjustPending('steals', -1)">−</button>
-                            <span class="stats-input-value">${pendingSteals}</span>
-                            <button class="stats-input-btn plus" onclick="GameScoreView.adjustPending('steals', 1)">＋</button>
+                    <div class="extra-stat-box">
+                        <div class="extra-stat-label">盗塁</div>
+                        <div class="extra-stat-control">
+                            <button class="extra-btn minus" onclick="GameScoreView.adjustPending('steals', -1)">−</button>
+                            <span class="extra-value">${pendingSteals}</span>
+                            <button class="extra-btn plus" onclick="GameScoreView.adjustPending('steals', 1)">＋</button>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="game-action-buttons">
-                <button class="change-btn-large" onclick="GameScoreView.performChange()">チェンジ</button>
-                <button class="end-game-btn" onclick="GameScoreView.endGame()">試合終了</button>
+            <div class="game-footer">
+                <button class="change-button-new" onclick="GameScoreView.performChange()">
+                    <span class="change-icon">🔄</span>
+                    <span>チェンジ</span>
+                </button>
+                <button class="end-button-new" onclick="GameScoreView.endGame()">試合終了</button>
             </div>
         `;
     },
@@ -1336,83 +1481,95 @@ const GameScoreView = {
         const currentPitcher = game.pitchingRecords.find(r => r.playerId === game.currentPitcherId) || game.pitchingRecords[0];
         
         return `
-            <div class="inning-status-bar">
-                <div class="inning-number">${game.currentInning}回</div>
-                <div class="inning-phase defense">守備中</div>
+            <div class="game-status-header defense">
+                <div class="status-inning">
+                    <span class="status-inning-num">${game.currentInning}</span>
+                    <span class="status-inning-label">回</span>
+                </div>
+                <div class="status-phase">
+                    <span class="status-phase-icon">🛡️</span>
+                    <span class="status-phase-text">守備中</span>
+                </div>
+                <div class="status-pitcher">
+                    <span class="status-pitcher-label">投手</span>
+                    <span class="status-pitcher-name">${currentPitcher.playerName}</span>
+                </div>
             </div>
             
-            <div class="defense-input-section">
-                <div class="defense-card">
-                    <div class="defense-card-title">相手チームの攻撃</div>
-                    <div class="defense-stats-row">
-                        <div class="defense-stat-item">
-                            <div class="defense-stat-label">得点</div>
-                            <div class="defense-stat-controls">
-                                <button class="stats-input-btn minus large" onclick="GameScoreView.adjustOpponentScore(-1)">−</button>
-                                <span class="defense-stat-value">${currentInning.opponentRuns || 0}</span>
-                                <button class="stats-input-btn plus large" onclick="GameScoreView.adjustOpponentScore(1)">＋</button>
+            <div class="game-main-content defense">
+                <div class="opponent-attack-section">
+                    <div class="section-title">相手チームの攻撃</div>
+                    <div class="opponent-stats">
+                        <div class="opponent-stat runs">
+                            <div class="opponent-stat-label">得点</div>
+                            <div class="opponent-stat-control">
+                                <button class="counter-btn minus" onclick="GameScoreView.adjustOpponentScore(-1)">−</button>
+                                <span class="counter-value">${currentInning.opponentRuns || 0}</span>
+                                <button class="counter-btn plus" onclick="GameScoreView.adjustOpponentScore(1)">＋</button>
                             </div>
                         </div>
-                        <div class="defense-stat-item">
-                            <div class="defense-stat-label">被安打</div>
-                            <div class="defense-stat-controls">
-                                <button class="stats-input-btn minus large" onclick="GameScoreView.adjustOpponentHits(-1)">−</button>
-                                <span class="defense-stat-value">${currentInning.opponentHits || 0}</span>
-                                <button class="stats-input-btn plus large" onclick="GameScoreView.adjustOpponentHits(1)">＋</button>
+                        <div class="opponent-stat hits">
+                            <div class="opponent-stat-label">被安打</div>
+                            <div class="opponent-stat-control">
+                                <button class="counter-btn minus" onclick="GameScoreView.adjustOpponentHits(-1)">−</button>
+                                <span class="counter-value">${currentInning.opponentHits || 0}</span>
+                                <button class="counter-btn plus" onclick="GameScoreView.adjustOpponentHits(1)">＋</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="defense-card">
-                    <div class="defense-card-header">
-                        <div class="defense-card-title">投手: ${currentPitcher.playerName}</div>
-                        <button class="pitcher-change-btn" onclick="GameScoreView.showPitcherChange()">投手交代</button>
+                <div class="pitcher-section">
+                    <div class="pitcher-header">
+                        <div class="section-title">投手成績</div>
+                        <button class="pitcher-change-button" onclick="GameScoreView.showPitcherChange()">
+                            <span>🔄</span> 投手交代
+                        </button>
                     </div>
-                    <div class="pitching-stats-row">
-                        <div class="pitching-stat-item">
-                            <div class="pitching-stat-label">投球回</div>
-                            <div class="pitching-stat-controls">
-                                <button class="stats-input-btn minus" onclick="GameScoreView.adjustPitching('inningsPitched', -1)">−</button>
-                                <span class="pitching-stat-value">${formatInnings(currentPitcher.inningsPitched)}</span>
-                                <button class="stats-input-btn plus" onclick="GameScoreView.adjustPitching('inningsPitched', 1)">＋</button>
+                    <div class="pitcher-stats-grid">
+                        <div class="pitcher-stat-box">
+                            <div class="pitcher-stat-label">投球回</div>
+                            <div class="pitcher-stat-control">
+                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('inningsPitched', -1)">−</button>
+                                <span class="pitcher-stat-value">${formatInnings(currentPitcher.inningsPitched)}</span>
+                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('inningsPitched', 1)">＋</button>
                             </div>
                         </div>
-                        <div class="pitching-stat-item">
-                            <div class="pitching-stat-label">三振</div>
-                            <div class="pitching-stat-controls">
-                                <button class="stats-input-btn minus" onclick="GameScoreView.adjustPitching('strikeouts', -1)">−</button>
-                                <span class="pitching-stat-value">${currentPitcher.strikeouts}</span>
-                                <button class="stats-input-btn plus" onclick="GameScoreView.adjustPitching('strikeouts', 1)">＋</button>
+                        <div class="pitcher-stat-box">
+                            <div class="pitcher-stat-label">奪三振</div>
+                            <div class="pitcher-stat-control">
+                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('strikeouts', -1)">−</button>
+                                <span class="pitcher-stat-value">${currentPitcher.strikeouts}</span>
+                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('strikeouts', 1)">＋</button>
                             </div>
                         </div>
-                        <div class="pitching-stat-item">
-                            <div class="pitching-stat-label">失点</div>
-                            <div class="pitching-stat-controls">
-                                <button class="stats-input-btn minus" onclick="GameScoreView.adjustPitching('runsAllowed', -1)">−</button>
-                                <span class="pitching-stat-value">${currentPitcher.runsAllowed}</span>
-                                <button class="stats-input-btn plus" onclick="GameScoreView.adjustPitching('runsAllowed', 1)">＋</button>
+                        <div class="pitcher-stat-box">
+                            <div class="pitcher-stat-label">失点</div>
+                            <div class="pitcher-stat-control">
+                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('runsAllowed', -1)">−</button>
+                                <span class="pitcher-stat-value">${currentPitcher.runsAllowed}</span>
+                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('runsAllowed', 1)">＋</button>
                             </div>
                         </div>
-                        <div class="pitching-stat-item">
-                            <div class="pitching-stat-label">自責点</div>
-                            <div class="pitching-stat-controls">
-                                <button class="stats-input-btn minus" onclick="GameScoreView.adjustPitching('earnedRuns', -1)">−</button>
-                                <span class="pitching-stat-value">${currentPitcher.earnedRuns}</span>
-                                <button class="stats-input-btn plus" onclick="GameScoreView.adjustPitching('earnedRuns', 1)">＋</button>
+                        <div class="pitcher-stat-box">
+                            <div class="pitcher-stat-label">自責点</div>
+                            <div class="pitcher-stat-control">
+                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('earnedRuns', -1)">−</button>
+                                <span class="pitcher-stat-value">${currentPitcher.earnedRuns}</span>
+                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('earnedRuns', 1)">＋</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 ${game.pitchingRecords.length > 1 ? `
-                    <div class="defense-card">
-                        <div class="defense-card-title">登板投手一覧</div>
-                        <div class="pitcher-list">
+                    <div class="pitchers-list-section">
+                        <div class="section-title">登板投手</div>
+                        <div class="pitchers-list">
                             ${game.pitchingRecords.map(r => `
-                                <div class="pitcher-list-item ${r.playerId === game.currentPitcherId ? 'current' : ''}">
-                                    <span class="pitcher-list-name">${r.playerName}</span>
-                                    <span class="pitcher-list-stats">${formatInnings(r.inningsPitched)}回 ${r.strikeouts}K ${r.earnedRuns}自責</span>
+                                <div class="pitchers-list-item ${r.playerId === game.currentPitcherId ? 'current' : ''}">
+                                    <span class="pitchers-name">${r.playerName}</span>
+                                    <span class="pitchers-stats">${formatInnings(r.inningsPitched)}回 / ${r.strikeouts}K / ${r.earnedRuns}自責</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -1420,9 +1577,12 @@ const GameScoreView = {
                 ` : ''}
             </div>
             
-            <div class="game-action-buttons">
-                <button class="change-btn-large" onclick="GameScoreView.performChange()">チェンジ</button>
-                <button class="end-game-btn" onclick="GameScoreView.endGame()">試合終了</button>
+            <div class="game-footer">
+                <button class="change-button-new" onclick="GameScoreView.performChange()">
+                    <span class="change-icon">🔄</span>
+                    <span>チェンジ</span>
+                </button>
+                <button class="end-button-new" onclick="GameScoreView.endGame()">試合終了</button>
             </div>
         `;
     },
