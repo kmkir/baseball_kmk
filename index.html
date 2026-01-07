@@ -12,10 +12,25 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+        <div class="loading-screen">
+            <div class="loading-icon">⚾</div>
+            <div class="loading-text">読み込み中...</div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <!-- Firebase設定 -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- メインアプリ -->
     <script src="app.js"></script>
+    
     <script>
-        // Service Worker登録
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
                 .then(() => console.log('Service Worker registered'))
