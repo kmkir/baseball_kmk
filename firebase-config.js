@@ -7,29 +7,25 @@
 //
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB5tPPaSdLXoJ9_v5AOZl0IP8OisgWt-_c",
-  authDomain: "baseball-score-app-kmk.firebaseapp.com",
-  projectId: "baseball-score-app-kmk",
-  storageBucket: "baseball-score-app-kmk.firebasestorage.app",
-  messagingSenderId: "852482098028",
-  appId: "1:852482098028:web:4acbf8e6b3301efcc8a949",
-  measurementId: "G-39FQP0PPD9"
+    apiKey: "AIzaSyB5tPPaSdLXoJ9_v5AOZl0IP8OisgWt-_c",
+    authDomain: "baseball-score-app-kmk.firebaseapp.com",
+    projectId: "baseball-score-app-kmk",
+    storageBucket: "baseball-score-app-kmk.firebasestorage.app",
+    messagingSenderId: "852482098028",
+    appId: "1:852482098028:web:4acbf8e6b3301efcc8a949",
+    measurementId: "G-39FQP0PPD9"
 };
 
 // Firebase初期化
 let db = null;
-let storage = null;
 let firebaseEnabled = false;
 
 try {
-    // 設定が有効かチェック
     if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
-        storage = firebase.storage();
         firebaseEnabled = true;
         
-        // オフライン永続化を有効化
         db.enablePersistence({ synchronizeTabs: true })
             .catch((err) => {
                 if (err.code === 'failed-precondition') {
@@ -48,11 +44,49 @@ try {
 }
 
 // ========================================
+// 画像圧縮・リサイズユーティリティ
+// ========================================
+
+async function compressImage(file, maxWidth = 400, maxHeight = 225, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                if (height > maxHeight) {
+                    width = (width * maxHeight) / height;
+                    height = maxHeight;
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const base64 = canvas.toDataURL('image/jpeg', quality);
+                resolve(base64);
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// ========================================
 // データベース操作クラス
 // ========================================
 
 const Database = {
-    // チーム一覧を取得
     async getTeams() {
         if (firebaseEnabled) {
             try {
@@ -71,9 +105,7 @@ const Database = {
         return data ? JSON.parse(data) : [];
     },
     
-    // チームを保存
     async saveTeam(team) {
-        // ローカルにも保存
         const teams = this.getTeamsLocal();
         const index = teams.findIndex(t => t.id === team.id);
         if (index >= 0) {
@@ -83,7 +115,6 @@ const Database = {
         }
         localStorage.setItem('teams', JSON.stringify(teams));
         
-        // Firebaseにも保存
         if (firebaseEnabled) {
             try {
                 await db.collection('teams').doc(team.id).set(team);
@@ -93,13 +124,10 @@ const Database = {
         }
     },
     
-    // チームを削除
     async deleteTeam(teamId) {
-        // ローカルから削除
         const teams = this.getTeamsLocal().filter(t => t.id !== teamId);
         localStorage.setItem('teams', JSON.stringify(teams));
         
-        // Firebaseからも削除
         if (firebaseEnabled) {
             try {
                 await db.collection('teams').doc(teamId).delete();
@@ -109,25 +137,12 @@ const Database = {
         }
     },
     
-    // 画像をアップロード
     async uploadImage(file, path) {
-        if (!firebaseEnabled || !storage) {
-            // ローカルストレージにBase64で保存
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
-        
         try {
-            const ref = storage.ref(path);
-            await ref.put(file);
-            return await ref.getDownloadURL();
+            const base64 = await compressImage(file, 400, 225, 0.7);
+            return base64;
         } catch (error) {
-            console.error('Error uploading image:', error);
-            // フォールバック: Base64として返す
+            console.error('Error compressing image:', error);
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => resolve(reader.result);
@@ -137,12 +152,10 @@ const Database = {
         }
     },
     
-    // リアルタイム同期を開始
     startRealtimeSync(callback) {
         if (firebaseEnabled) {
             return db.collection('teams').onSnapshot((snapshot) => {
                 const teams = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // ローカルも更新
                 localStorage.setItem('teams', JSON.stringify(teams));
                 callback(teams);
             }, (error) => {
