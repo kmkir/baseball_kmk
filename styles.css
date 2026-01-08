@@ -281,6 +281,79 @@ body {
 }
 
 /* ========================================
+   試合登録 - 種別選択（先攻/後攻スタイル）
+   ======================================== */
+
+.game-type-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.game-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    border: 3px solid var(--border-color);
+    border-radius: 18px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.game-type-btn:active {
+    transform: scale(0.97);
+}
+
+.game-type-btn.active {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(29, 78, 216, 0.12) 100%);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25);
+}
+
+.game-type-btn.active.practice {
+    border-color: var(--primary-color);
+}
+
+.game-type-btn.active.official {
+    border-color: var(--danger-color);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.12) 100%);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25);
+}
+
+.game-type-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.game-type-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+.game-type-btn.active .game-type-label {
+    color: var(--primary-color);
+}
+
+.game-type-btn.active.official .game-type-label {
+    color: var(--danger-color);
+}
+
+.game-type-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+
+/* ========================================
    Form
    ======================================== */
 
@@ -644,19 +717,19 @@ body {
 }
 
 /* ========================================
-   打撃結果ボタン（大幅改善）
+   打撃結果ボタン（シンプル洗練版）
    ======================================== */
 
 .result-buttons { 
     display: flex; 
     flex-direction: column; 
-    gap: 12px; 
-    margin: 20px 16px; 
+    gap: 10px; 
+    margin: 16px; 
 }
 
 .result-row { 
     display: grid; 
-    gap: 10px; 
+    gap: 8px; 
 }
 
 .hit-row { 
@@ -675,71 +748,70 @@ body {
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    gap: 8px; 
-    padding: 16px 8px; 
+    justify-content: center;
+    gap: 6px; 
+    padding: 14px 6px; 
     border: none; 
-    border-radius: 18px; 
+    border-radius: 14px; 
     font-weight: 700; 
     cursor: pointer; 
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s;
     color: white;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1);
-    min-height: 90px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    min-height: 75px;
 }
 
-.result-btn::before {
+.result-btn::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 100%);
     opacity: 1;
 }
 
 .result-btn:active {
-    transform: scale(0.92) translateY(3px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transform: scale(0.94);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .result-btn.hit { 
-    background: var(--hit-gradient);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
 }
 
 .result-btn.hit.hr {
-    background: var(--hr-gradient);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { box-shadow: 0 6px 16px rgba(236, 72, 153, 0.3), 0 2px 8px rgba(219, 39, 119, 0.2); }
-    50% { box-shadow: 0 6px 24px rgba(236, 72, 153, 0.5), 0 2px 8px rgba(219, 39, 119, 0.3); }
+    background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
 }
 
 .result-btn.walk { 
-    background: var(--walk-gradient);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
 }
 
 .result-btn.sacrifice { 
-    background: var(--sacrifice-gradient);
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
 }
 
 .result-btn.out { 
-    background: var(--out-gradient);
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
 }
 
 .result-icon { 
-    font-size: 2rem;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    font-size: 1.6rem;
+    position: relative;
+    z-index: 1;
 }
 
 .result-text { 
-    font-size: 0.9rem;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
+
 
 /* ========================================
    Extra Stats（打点・盗塁カウンター）
@@ -1786,4 +1858,528 @@ body {
 
 .sync-status.local {
     color: var(--text-secondary);
+}
+
+/* ========================================
+   スタメン選択 - 新スタイル
+   ======================================== */
+
+.lineup-slot-new {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: white;
+    border: 3px solid var(--border-color);
+    border-radius: 18px;
+    margin-bottom: 12px;
+    cursor: move;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.lineup-slot-new:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.lineup-order-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.lineup-player-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.lineup-player-number {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.lineup-player-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.lineup-remove-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 100%);
+    color: var(--danger-color);
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+}
+
+.lineup-remove-btn:active {
+    transform: scale(0.9);
+}
+
+/* ========================================
+   試合中 - 投手表示（大）
+   ======================================== */
+
+.current-pitcher-display {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    padding: 24px;
+    text-align: center;
+    margin: 16px;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+
+.current-pitcher-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.current-pitcher-name {
+    font-size: 2.2rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* ========================================
+   試合中 - アウトカウント表示
+   ======================================== */
+
+.outs-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin: 16px;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.outs-circles {
+    display: flex;
+    gap: 16px;
+}
+
+.out-circle {
+    font-size: 2.5rem;
+    opacity: 0.2;
+    transition: all 0.3s;
+    filter: grayscale(100%);
+}
+
+.out-circle.active {
+    opacity: 1;
+    filter: grayscale(0%);
+    animation: outPulse 0.5s ease-out;
+}
+
+@keyframes outPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* ========================================
+   統計テーブル - 並び替え対応
+   ======================================== */
+
+.stats-table-new th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+}
+
+.stats-table-new th.sortable:hover {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+.stats-table-new th.sortable:active {
+    transform: scale(0.98);
+}
+
+.stats-table-new th.sortable.active {
+    color: var(--primary-color);
+    font-weight: 800;
+}
+
+/* ========================================
+   試合登録 - セットアップセクション
+   ======================================== */
+
+.setup-section {
+    margin: 16px;
+}
+
+.setup-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setup-card {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 2px solid var(--border-color);
+}
+
+.setup-row {
+    margin-bottom: 18px;
+}
+
+.setup-row:last-child {
+    margin-bottom: 0;
+}
+
+.setup-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.setup-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: white;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.setup-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.quick-select {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.quick-btn {
+    padding: 8px 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.quick-btn:active {
+    transform: scale(0.96);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.round-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.round-btn {
+    padding: 12px 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+}
+
+.round-btn:active {
+    transform: scale(0.96);
+}
+
+.round-btn.active {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(29, 78, 216, 0.12) 100%);
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.setup-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border-top: 2px solid var(--border-color);
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+}
+
+/* ========================================
+   先攻・後攻選択
+   ======================================== */
+
+.batting-order-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* ========================================
+   スタメン選択 - コンテナ
+   ======================================== */
+
+.lineup-container {
+    padding: 16px;
+    min-height: 60vh;
+}
+
+.lineup-section {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.lineup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.lineup-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.lineup-count {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.lineup-count.full {
+    color: var(--success-color);
+}
+
+.lineup-slots {
+    min-height: 200px;
+}
+
+.lineup-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+}
+
+.lineup-empty-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    opacity: 0.3;
+}
+
+.bench-section {
+    background: white;
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.bench-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.bench-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bench-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.bench-players {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.bench-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bench-player:active {
+    transform: scale(0.96);
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.bench-player-number {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.bench-player-name {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.bench-player-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
+    color: var(--secondary-color);
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.bench-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    grid-column: 1 / -1;
+}
+
+/* ========================================
+   投手選択
+   ======================================== */
+
+.selected-pitcher-display {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(29, 78, 216, 0.12) 100%);
+    border-radius: 16px;
+    border: 2px solid var(--primary-color);
+}
+
+.selected-pitcher-icon {
+    font-size: 2.5rem;
+}
+
+.selected-pitcher-info {
+    flex: 1;
+}
+
+.selected-pitcher-number {
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.selected-pitcher-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 4px;
+}
+
+.pitcher-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.player-select-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.player-select-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.player-select-item:active {
+    transform: scale(0.96);
+    border-color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.player-select-item.pitcher {
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
+.player-select-item.pitcher:active {
+    border-color: var(--secondary-color);
+    background: rgba(249, 115, 22, 0.05);
+}
+
+.player-select-number {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.player-select-name {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
 }
