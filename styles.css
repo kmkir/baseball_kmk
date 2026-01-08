@@ -2911,3 +2911,219 @@ body {
     transform: scale(0.95);
     background: white;
 }
+
+/* ========================================
+   打撃結果ボタン - アイコン削除、サイズ縮小
+   ======================================== */
+
+.result-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px !important;
+    min-height: 45px !important;
+    gap: 0;
+}
+
+.result-icon {
+    display: none !important;
+}
+
+.result-text {
+    font-size: 0.85rem !important;
+}
+
+/* ========================================
+   アウト枠のサイズ縮小（2/3）
+   ======================================== */
+
+.outs-display {
+    padding: 12px !important;
+    margin: 12px 16px !important;
+}
+
+.out-circle {
+    font-size: 1.8rem !important;
+}
+
+/* ========================================
+   守備中 - 投手表示サイズ縮小（2/3）
+   ======================================== */
+
+.current-pitcher-display-small {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    padding: 16px;
+    text-align: center;
+    margin: 12px 16px;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.current-pitcher-display-small .current-pitcher-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.current-pitcher-display-small .current-pitcher-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* ========================================
+   守備中 - 相手チームの攻撃サイズ縮小（1/2）
+   ======================================== */
+
+.opponent-attack-section-small {
+    margin: 12px 16px;
+}
+
+.opponent-attack-section-small .section-title {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+}
+
+.opponent-attack-section-small .opponent-stat-single {
+    max-width: 200px;
+}
+
+.opponent-attack-section-small .opponent-stat-label {
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+}
+
+.opponent-attack-section-small .counter-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+}
+
+.opponent-attack-section-small .counter-value {
+    font-size: 1.8rem;
+    min-width: 45px;
+}
+
+/* ========================================
+   投手交代ボタン - 下部配置
+   ======================================== */
+
+.pitcher-change-section {
+    margin: 16px;
+}
+
+.pitcher-change-button-bottom {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.pitcher-change-button-bottom:active {
+    transform: scale(0.98);
+}
+
+/* ========================================
+   打席編集モーダル - 選択状態の視覚化
+   ======================================== */
+
+.modal-result-btn {
+    padding: 12px 10px;
+    border: 3px solid var(--border-color);
+    border-radius: 12px;
+    background: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-primary);
+}
+
+.modal-result-btn:active {
+    transform: scale(0.96);
+}
+
+.modal-result-btn.selected {
+    border-width: 3px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.modal-result-btn.hit.selected {
+    border-color: var(--hit-color);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.15) 100%);
+    color: var(--hit-color);
+}
+
+.modal-result-btn.out.selected {
+    border-color: var(--text-secondary);
+    background: linear-gradient(135deg, rgba(100, 116, 139, 0.15) 0%, rgba(71, 85, 105, 0.15) 100%);
+    color: var(--text-secondary);
+}
+
+.modal-result-btn.walk.selected {
+    border-color: var(--walk-color);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
+    color: var(--walk-color);
+}
+
+.modal-result-btn.sacrifice.selected {
+    border-color: var(--sacrifice-color);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
+    color: var(--sacrifice-color);
+}
+
+/* ========================================
+   打席編集モーダル - iOS対応
+   ======================================== */
+
+.modal-stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.modal-stat-item {
+    flex: 1;
+    min-width: 140px;
+}
+
+@media screen and (max-width: 375px) {
+    .modal-stat-item {
+        min-width: 100%;
+    }
+    
+    .modal-stats-row {
+        flex-direction: column;
+    }
+}
+
+/* ========================================
+   試合終了後の編集モーダル用
+   ======================================== */
+
+.finished-game-edit .modal-result-btn.selected {
+    animation: selectedPulse 0.5s ease-out;
+}
+
+@keyframes selectedPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
