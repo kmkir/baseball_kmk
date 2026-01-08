@@ -952,6 +952,7 @@ const GameSetupView = {
     isFirstBatting: true,
     step: 1,
     gameData: {},
+    attendingPlayers: [], // 出席者リスト
     
     reset() {
         this.battingOrder = [];
@@ -959,6 +960,7 @@ const GameSetupView = {
         this.isFirstBatting = true;
         this.step = 1;
         this.gameData = {};
+        this.attendingPlayers = [];
     },
     
     render(team) {
@@ -969,12 +971,13 @@ const GameSetupView = {
                 <h1>試合を登録</h1>
             </div></div>
             <div style="display:flex;padding:10px 12px;gap:4px;">
-                ${[1,2,3,4].map(s => `<div style="flex:1;height:4px;border-radius:2px;background:${this.step >= s ? 'var(--primary-color)' : '#e5e7eb'};"></div>`).join('')}
+                ${[1,2,3,4,5].map(s => `<div style="flex:1;height:4px;border-radius:2px;background:${this.step >= s ? 'var(--primary-color)' : '#e5e7eb'};"></div>`).join('')}
             </div>
             ${this.step === 1 ? this.renderStep1(team, today) : ''}
             ${this.step === 2 ? this.renderStep2(team) : ''}
             ${this.step === 3 ? this.renderStep3(team) : ''}
             ${this.step === 4 ? this.renderStep4(team) : ''}
+            ${this.step === 5 ? this.renderStep5(team) : ''}
         `;
     },
     
@@ -1058,13 +1061,58 @@ const GameSetupView = {
             </div>
             
             <div class="setup-footer">
-                <button class="btn btn-primary btn-large" onclick="GameSetupView.nextStep()">次へ：打順設定 →</button>
+                <button class="btn btn-primary btn-large" onclick="GameSetupView.nextStep()">次へ：出席者登録 →</button>
             </div>
         `;
     },
     
     renderStep2(team) {
         const players = sortByJapanese([...(team.players || [])], 'name');
+        
+        return `
+            <div class="attendance-container">
+                <div class="card" style="margin: 16px;">
+                    <div class="card-title">出席者を選択</div>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">
+                        今日の試合に参加する選手を選択してください
+                    </p>
+                    <div class="attendance-grid">
+                        ${players.map(player => `
+                            <div class="attendance-player ${this.attendingPlayers.includes(player.id) ? 'selected' : ''}" 
+                                 onclick="GameSetupView.toggleAttendance('${player.id}')">
+                                <div class="attendance-player-number">#${player.number || '-'}</div>
+                                <div class="attendance-player-name">${player.name}</div>
+                                ${player.isPitcher ? '<div class="attendance-player-badge">投</div>' : ''}
+                                <div class="attendance-check ${this.attendingPlayers.includes(player.id) ? 'visible' : ''}">✓</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top: 16px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+                        選択: ${this.attendingPlayers.length}/${players.length}人
+                    </div>
+                </div>
+            </div>
+            
+            <div class="setup-footer">
+                <button class="btn btn-secondary" onclick="GameSetupView.prevStep()" style="flex:1;">← 戻る</button>
+                <button class="btn btn-primary" onclick="GameSetupView.nextStep()" style="flex:2;" ${this.attendingPlayers.length === 0 ? 'disabled' : ''}>次へ：打順設定 →</button>
+            </div>
+        `;
+    },
+    
+    toggleAttendance(playerId) {
+        const index = this.attendingPlayers.indexOf(playerId);
+        if (index >= 0) {
+            this.attendingPlayers.splice(index, 1);
+        } else {
+            this.attendingPlayers.push(playerId);
+        }
+        App.render();
+    },
+    
+    renderStep3(team) {
+        const players = sortByJapanese([...(team.players || [])], 'name')
+            .filter(p => this.attendingPlayers.includes(p.id)); // 出席者のみ表示
         const availablePlayers = players.filter(p => !this.battingOrder.find(b => b.id === p.id));
         const isFull = this.battingOrder.length >= 9;
         
@@ -1127,16 +1175,24 @@ const GameSetupView = {
         `;
     },
     
-    renderStep3(team) {
-        const players = sortByJapanese([...(team.players || [])], 'name');
+    renderStep4(team) {
+        const players = sortByJapanese([...(team.players || [])], 'name')
+            .filter(p => this.attendingPlayers.includes(p.id)); // 出席者のみ
         const pitchers = players.filter(p => p.isPitcher);
         const others = players.filter(p => !p.isPitcher);
+        
+        // エラーチェック：選択された投手がスタメンにいるか
+        let errorMessage = '';
+        if (this.selectedPitcher && !this.battingOrder.find(p => p.id === this.selectedPitcher.id)) {
+            errorMessage = '⚠️ 先発投手はスタメンに含まれている必要があります';
+        }
         
         return `
             <div class="card">
                 <div class="card-title">先発投手を選択</div>
+                ${errorMessage ? `<div class="error-message">${errorMessage}</div>` : ''}
                 ${this.selectedPitcher ? `
-                    <div class="selected-pitcher-display">
+                    <div class="selected-pitcher-display ${errorMessage ? 'error' : ''}">
                         <div class="selected-pitcher-icon">⚾</div>
                         <div class="selected-pitcher-info">
                             <div class="selected-pitcher-number">#${this.selectedPitcher.number || '-'}</div>
@@ -1165,14 +1221,14 @@ const GameSetupView = {
                     ` : ''}
                 `}
             </div>
-            <div class="p-12" style="display:flex;gap:10px;">
-                <button class="btn btn-secondary btn-large" onclick="GameSetupView.prevStep()" style="flex:1;">← 戻る</button>
-                <button class="btn btn-primary btn-large" onclick="GameSetupView.nextStep()" style="flex:2;" ${!this.selectedPitcher ? 'disabled' : ''}>次へ：確認 →</button>
+            <div class="setup-footer">
+                <button class="btn btn-secondary" onclick="GameSetupView.prevStep()" style="flex:1;">← 戻る</button>
+                <button class="btn btn-primary" onclick="GameSetupView.nextStep()" style="flex:2;" ${!this.selectedPitcher || errorMessage ? 'disabled' : ''}>次へ：確認 →</button>
             </div>
         `;
     },
     
-    renderStep4(team) {
+    renderStep5(team) {
         return `
             <div class="card">
                 <div class="card-title">試合情報</div>
