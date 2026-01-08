@@ -700,7 +700,7 @@ const PlayerDetailView = {
         return `
             <div class="header"><div class="header-with-back">
                 <button class="back-button" onclick="PlayerDetailView.editing = false; App.navigate('playerManagement', { currentTeam: App.currentTeam })">←</button>
-                <h1><span style="color: var(--primary-color); font-weight: 700; margin-right: 10px;">#${player.number || '-'}</span>${player.name}</h1>
+                <h1><span style="font-weight: 700; margin-right: 10px;">#${player.number || '-'}</span>${player.name}</h1>
             </div></div>
             
             <div class="player-detail-container">
@@ -1612,16 +1612,16 @@ const GameScoreView = {
         const bottomTeam = game.isFirstBatting ? game.opponent : team.name;
         
         const getTopScore = (inn, inningIndex) => {
-            // そのイニングが完了していれば点数を表示
-            if (inn && inn.topComplete) {
+            // フラグが存在しない場合は試合終了後として扱う
+            if (inn && (inn.topComplete === true || (game.isFinished && inn.topComplete !== false))) {
                 return game.isFirstBatting ? inn.teamRuns : inn.opponentRuns;
             }
             return null;
         };
         
         const getBottomScore = (inn, inningIndex) => {
-            // そのイニングが完了していれば点数を表示
-            if (inn && inn.bottomComplete) {
+            // フラグが存在しない場合は試合終了後として扱う
+            if (inn && (inn.bottomComplete === true || (game.isFinished && inn.bottomComplete !== false))) {
                 return game.isFirstBatting ? inn.opponentRuns : inn.teamRuns;
             }
             return null;
@@ -1673,6 +1673,12 @@ const GameScoreView = {
                                     <span class="history-order-simple">${batterOrder}番</span>
                                     <span class="history-name-simple">${ab.playerName}</span>
                                     <span class="history-result-simple">${AtBatResults[ab.result].name}</span>
+                                    ${ab.rbi > 0 || ab.stolenBases > 0 ? `
+                                        <span class="history-stats-simple">
+                                            ${ab.rbi > 0 ? `<span class="history-stat-badge rbi">打${ab.rbi}</span>` : ''}
+                                            ${ab.stolenBases > 0 ? `<span class="history-stat-badge steal">盗${ab.stolenBases}</span>` : ''}
+                                        </span>
+                                    ` : ''}
                                 </div>
                             `;
                         }).join('')}
@@ -1897,6 +1903,14 @@ const GameScoreView = {
         const atBat = currentInning.atBats[index];
         const oldResult = atBat.result;
         
+        // 即座にボタンの選択状態を更新
+        document.querySelectorAll('.modal-result-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        if (event && event.target) {
+            event.target.classList.add('selected');
+        }
+        
         // ヒット数の調整
         if (AtBatResults[oldResult].type === 'hit' && AtBatResults[result].type !== 'hit') {
             currentInning.teamHits = Math.max(0, currentInning.teamHits - 1);
@@ -1913,12 +1927,6 @@ const GameScoreView = {
         game.currentOuts = totalOuts % 3;
         
         await this.saveGame();
-        
-        // ボタンの選択状態を更新（モーダル内）
-        document.querySelectorAll('.modal-result-btn').forEach(btn => {
-            btn.classList.remove('selected');
-        });
-        event.target.classList.add('selected');
     },
     
     async updateAtBatStat(index, field, amount) {
@@ -2147,6 +2155,31 @@ const GameScoreView = {
     async endGame() {
         if (confirm('試合を終了しますか？')) {
             const game = App.currentGame;
+            
+            // 最後のイニングの完了フラグを設定
+            const currentInning = game.innings[game.currentInning - 1];
+            if (currentInning) {
+                if (game.isFirstBatting) {
+                    if (game.isTeamBatting) {
+                        currentInning.topComplete = true;
+                    } else {
+                        currentInning.bottomComplete = true;
+                    }
+                } else {
+                    if (game.isTeamBatting) {
+                        currentInning.bottomComplete = true;
+                    } else {
+                        currentInning.topComplete = true;
+                    }
+                }
+            }
+            
+            // すべてのイニングにフラグがない場合は設定
+            game.innings.forEach((inn, index) => {
+                if (inn.topComplete === undefined) inn.topComplete = true;
+                if (inn.bottomComplete === undefined) inn.bottomComplete = true;
+            });
+            
             game.teamTotalRuns = game.innings.reduce((sum, inn) => sum + (inn.teamRuns || 0), 0);
             game.teamTotalHits = game.innings.reduce((sum, inn) => sum + (inn.teamHits || 0), 0);
             game.opponentTotalRuns = game.innings.reduce((sum, inn) => sum + (inn.opponentRuns || 0), 0);
@@ -2334,6 +2367,14 @@ const InningEditView = {
         const atBat = inning.atBats[index];
         const oldResult = atBat.result;
         
+        // 即座にボタンの選択状態を更新
+        document.querySelectorAll('.modal-result-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        if (event && event.target) {
+            event.target.classList.add('selected');
+        }
+        
         // ヒット数の調整
         if (AtBatResults[oldResult].type === 'hit' && AtBatResults[result].type !== 'hit') {
             inning.teamHits = Math.max(0, inning.teamHits - 1);
@@ -2349,12 +2390,6 @@ const InningEditView = {
         const gameIndex = team.games.findIndex(g => g.id === game.id);
         if (gameIndex >= 0) team.games[gameIndex] = game;
         await App.saveTeam(team);
-        
-        // ボタンの選択状態を更新
-        document.querySelectorAll('.modal-result-btn').forEach(btn => {
-            btn.classList.remove('selected');
-        });
-        event.target.classList.add('selected');
     },
     
     async updateAtBatStat(index, field, amount) {
