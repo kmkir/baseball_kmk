@@ -472,7 +472,7 @@ const PlayerManagementView = {
                                 打数 ${this.battingSortBy === 'atBats' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
                             <th class="sortable ${this.battingSortBy === 'hits' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('hits')">
-                                安打 ${this.battingSortBy === 'hits' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                                1B ${this.battingSortBy === 'hits' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
                             <th class="sortable ${this.battingSortBy === 'doubles' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('doubles')">
                                 2B ${this.battingSortBy === 'doubles' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
@@ -700,18 +700,17 @@ const PlayerDetailView = {
         return `
             <div class="header"><div class="header-with-back">
                 <button class="back-button" onclick="PlayerDetailView.editing = false; App.navigate('playerManagement', { currentTeam: App.currentTeam })">←</button>
-                <h1>${player.name}</h1>
+                <h1><span style="color: var(--primary-color); font-weight: 700; margin-right: 10px;">#${player.number || '-'}</span>${player.name}</h1>
             </div></div>
             
             <div class="player-detail-container">
                 <div class="player-image-section" onclick="PlayerDetailView.uploadImage('${player.id}')">
                     ${player.imageUrl ? `
                         <img src="${player.imageUrl}" class="player-image-large" alt="${player.name}">
-                        <div class="image-change-hint">タップして画像を変更</div>
                     ` : `
                         <div class="player-image-placeholder">
                             <div class="placeholder-icon">📷</div>
-                            <div class="placeholder-text">タップして画像を追加</div>
+                            <div class="placeholder-text">画像を挿入してください</div>
                         </div>
                     `}
                 </div>
@@ -728,12 +727,10 @@ const PlayerDetailView = {
                             </div>
                         </div>
                     ` : `
-                        <div class="player-header-info">
-                            <div class="player-number-large">#${player.number || '-'}</div>
-                            <div class="player-name-large">${player.name}</div>
+                        <div style="display: flex; justify-content: center; gap: 12px;">
                             ${player.isPitcher ? '<span class="badge badge-warning">投手</span>' : '<span class="badge badge-primary">野手</span>'}
+                            <button class="btn btn-outline" onclick="PlayerDetailView.editing = true; App.render()">選手情報を編集</button>
                         </div>
-                        <button class="btn btn-outline" onclick="PlayerDetailView.editing = true; App.render()">選手情報を編集</button>
                     `}
                 </div>
             </div>
@@ -749,7 +746,7 @@ const PlayerDetailView = {
                                 <th>出塁</th>
                                 <th>打席</th>
                                 <th>打数</th>
-                                <th>安打</th>
+                                <th>1B</th>
                                 <th>2B</th>
                                 <th>3B</th>
                                 <th>HR</th>
@@ -783,13 +780,31 @@ const PlayerDetailView = {
             ${hasPitching ? `
                 <div class="stats-section">
                     <div class="stats-section-title">投手成績</div>
-                    <div class="stats-grid-detail">
-                        <div class="stat-box highlight"><div class="stat-box-value">${pitchingStats.era}</div><div class="stat-box-label">防御率</div></div>
-                        <div class="stat-box"><div class="stat-box-value">${pitchingStats.appearances}</div><div class="stat-box-label">登板</div></div>
-                        <div class="stat-box"><div class="stat-box-value">${pitchingStats.inningsPitchedDisplay}</div><div class="stat-box-label">投球回</div></div>
-                        <div class="stat-box"><div class="stat-box-value">${pitchingStats.strikeouts}</div><div class="stat-box-label">奪三振</div></div>
-                        <div class="stat-box"><div class="stat-box-value">${pitchingStats.runsAllowed}</div><div class="stat-box-label">失点</div></div>
-                        <div class="stat-box"><div class="stat-box-value">${pitchingStats.earnedRuns}</div><div class="stat-box-label">自責点</div></div>
+                    <div class="card" style="overflow-x:auto;padding:0;">
+                        <table class="stats-table-new">
+                            <thead>
+                                <tr>
+                                    <th>防御率</th>
+                                    <th>登板</th>
+                                    <th>投球回</th>
+                                    <th>奪三振</th>
+                                    <th>失点</th>
+                                    <th>自責点</th>
+                                    <th>被安打</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="stat-highlight">${pitchingStats.era}</td>
+                                    <td>${pitchingStats.appearances}</td>
+                                    <td>${pitchingStats.inningsPitchedDisplay}</td>
+                                    <td>${pitchingStats.strikeouts}</td>
+                                    <td>${pitchingStats.runsAllowed}</td>
+                                    <td>${pitchingStats.earnedRuns}</td>
+                                    <td>${pitchingStats.hitsAllowed}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             ` : ''}
@@ -1762,23 +1777,9 @@ const GameScoreView = {
                     </div>
                 </div>
                 
-                ${game.pitchingRecords.length > 1 ? `
-                    <div class="pitchers-list-section">
-                        <div class="section-title">登板投手</div>
-                        <div class="pitchers-list">
-                            ${game.pitchingRecords.map(r => `
-                                <div class="pitchers-list-item ${r.playerId === game.currentPitcherId ? 'current' : ''}">
-                                    <span class="pitchers-name">${r.playerName}</span>
-                                    <span class="pitchers-stats">${formatInnings(r.inningsPitched)}回 / ${r.strikeouts}K / ${r.earnedRuns}自責</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
-                
                 <div class="pitcher-section">
                     <div class="section-title">投手成績</div>
-                    <div class="pitcher-stats-grid">
+                    <div class="pitcher-stats-grid-compact">
                         <div class="pitcher-stat-box">
                             <div class="pitcher-stat-label">投球回</div>
                             <div class="pitcher-stat-control">
@@ -2280,23 +2281,103 @@ const InningEditView = {
         const atBat = inning.atBats[index];
         if (!atBat) return;
         
-        const newResult = prompt('打席結果 (single, double, triple, homeRun, walk, error, sacrifice, out, doublePlay, triplePlay):', atBat.result);
-        if (newResult && AtBatResults[newResult]) atBat.result = newResult;
+        // モーダル形式で編集
+        const resultButtons = Object.entries(AtBatResults).map(([key, val]) => `
+            <button class="modal-result-btn ${val.type} ${atBat.result === key ? 'selected' : ''}" 
+                    onclick="InningEditView.updateAtBatResult(${index}, '${key}')">${val.name}</button>
+        `).join('');
         
-        const newRbi = prompt('打点:', atBat.rbi);
-        if (newRbi !== null) atBat.rbi = parseInt(newRbi) || 0;
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal edit-modal">
+                <div class="modal-header">
+                    <span class="modal-title">${atBat.playerName}の打席を編集</span>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section">
+                        <div class="modal-section-title">打席結果</div>
+                        <div class="modal-result-grid">${resultButtons}</div>
+                    </div>
+                    <div class="modal-section">
+                        <div class="modal-section-title">打点・盗塁</div>
+                        <div class="modal-stats-row">
+                            <div class="modal-stat-item">
+                                <span class="modal-stat-label">打点</span>
+                                <div class="modal-stat-controls">
+                                    <button onclick="InningEditView.updateAtBatStat(${index}, 'rbi', -1)">−</button>
+                                    <span id="finishedEditRbi${index}">${atBat.rbi || 0}</span>
+                                    <button onclick="InningEditView.updateAtBatStat(${index}, 'rbi', 1)">＋</button>
+                                </div>
+                            </div>
+                            <div class="modal-stat-item">
+                                <span class="modal-stat-label">盗塁</span>
+                                <div class="modal-stat-controls">
+                                    <button onclick="InningEditView.updateAtBatStat(${index}, 'stolenBases', -1)">−</button>
+                                    <span id="finishedEditSteals${index}">${atBat.stolenBases || 0}</span>
+                                    <button onclick="InningEditView.updateAtBatStat(${index}, 'stolenBases', 1)">＋</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-large" onclick="this.closest('.modal-overlay').remove(); App.render();">完了</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    },
+    
+    async updateAtBatResult(index, result) {
+        const game = App.currentGame;
+        const inning = game.innings[App.currentInningIndex];
+        const atBat = inning.atBats[index];
+        const oldResult = atBat.result;
         
-        const newSteals = prompt('盗塁:', atBat.stolenBases);
-        if (newSteals !== null) atBat.stolenBases = parseInt(newSteals) || 0;
+        // ヒット数の調整
+        if (AtBatResults[oldResult].type === 'hit' && AtBatResults[result].type !== 'hit') {
+            inning.teamHits = Math.max(0, inning.teamHits - 1);
+            game.teamTotalHits = Math.max(0, game.teamTotalHits - 1);
+        } else if (AtBatResults[oldResult].type !== 'hit' && AtBatResults[result].type === 'hit') {
+            inning.teamHits++;
+            game.teamTotalHits++;
+        }
         
-        inning.teamRuns = inning.atBats.reduce((sum, ab) => sum + (ab.rbi || 0), 0);
-        game.teamTotalRuns = game.innings.reduce((sum, inn) => sum + (inn.teamRuns || 0), 0);
+        atBat.result = result;
         
         const team = App.currentTeam;
         const gameIndex = team.games.findIndex(g => g.id === game.id);
         if (gameIndex >= 0) team.games[gameIndex] = game;
-        App.saveTeam(team);
-        App.render();
+        await App.saveTeam(team);
+        
+        // ボタンの選択状態を更新
+        document.querySelectorAll('.modal-result-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        event.target.classList.add('selected');
+    },
+    
+    async updateAtBatStat(index, field, amount) {
+        const game = App.currentGame;
+        const inning = game.innings[App.currentInningIndex];
+        const atBat = inning.atBats[index];
+        
+        atBat[field] = Math.max(0, (atBat[field] || 0) + amount);
+        
+        // 打点の場合は得点も更新
+        if (field === 'rbi') {
+            inning.teamRuns = inning.atBats.reduce((sum, ab) => sum + (ab.rbi || 0), 0);
+            game.teamTotalRuns = game.innings.reduce((sum, inn) => sum + (inn.teamRuns || 0), 0);
+        }
+        
+        const team = App.currentTeam;
+        const gameIndex = team.games.findIndex(g => g.id === game.id);
+        if (gameIndex >= 0) team.games[gameIndex] = game;
+        await App.saveTeam(team);
+        
+        // 表示を更新
+        const el = document.getElementById(field === 'rbi' ? `finishedEditRbi${index}` : `finishedEditSteals${index}`);
+        if (el) el.textContent = atBat[field];
     }
 };
 
