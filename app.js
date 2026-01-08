@@ -63,8 +63,25 @@ function addInning(current, amount) {
 
 // 選手統計計算
 function calculatePlayerBattingStats(team, playerId) {
-    const stats = { games: 0, atBats: 0, hits: 0, walks: 0, homeRuns: 0, singles: 0, doubles: 0, triples: 0, rbis: 0, stolenBases: 0 };
+    const stats = { 
+        games: 0, 
+        attendance: 0,  // 参加数
+        atBats: 0, 
+        hits: 0, 
+        walks: 0, 
+        homeRuns: 0, 
+        singles: 0, 
+        doubles: 0, 
+        triples: 0, 
+        rbis: 0, 
+        stolenBases: 0 
+    };
     (team.games || []).forEach(game => {
+        // 出席チェック
+        const wasPresent = (game.attendingPlayers && game.attendingPlayers.includes(playerId)) ||
+                          (game.battingOrder && game.battingOrder.some(b => b.id === playerId));
+        if (wasPresent) stats.attendance++;
+        
         let hasAtBat = false;
         (game.innings || []).forEach(inning => {
             (inning.atBats || []).forEach(ab => {
@@ -299,7 +316,7 @@ const TeamManagementView = {
 
 const PlayerManagementView = {
     tab: 'list', // 'list', 'batting', 'pitching'
-    battingSortBy: 'name', // 'name', 'avg', 'obp', 'ops', 'hits', 'homeRuns', 'rbis', 'stolenBases'
+    battingSortBy: 'name', // 'name', 'attendance', 'avg', 'obp', 'ops', 'hits', 'homeRuns', 'rbis', 'stolenBases'
     battingSortOrder: 'desc', // 'asc', 'desc'
     pitchingSortBy: 'name', // 'name', 'era', 'appearances', 'inningsPitched', 'strikeouts', 'runsAllowed', 'earnedRuns'
     pitchingSortOrder: 'desc', // 'asc', 'desc'
@@ -361,6 +378,7 @@ const PlayerManagementView = {
                                     ${player.isPitcher ? '<span class="badge-small">投手</span>' : ''}
                                 </div>
                                 <div class="player-card-stats">
+                                    <span>参加 <strong>${stats.attendance}</strong></span>
                                     <span>打率 <strong>${stats.avg}</strong></span>
                                     <span>安打 <strong>${stats.hits}</strong></span>
                                     <span>HR <strong>${stats.homeRuns}</strong></span>
@@ -410,6 +428,9 @@ const PlayerManagementView = {
                             <th class="sticky-col sortable ${this.battingSortBy === 'name' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('name')">
                                 選手 ${this.battingSortBy === 'name' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
+                            <th class="sortable ${this.battingSortBy === 'attendance' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('attendance')">
+                                参加 ${this.battingSortBy === 'attendance' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
                             <th class="sortable ${this.battingSortBy === 'avg' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('avg')">
                                 打率 ${this.battingSortBy === 'avg' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
@@ -440,6 +461,7 @@ const PlayerManagementView = {
                                     <span class="table-player-number">#${player.number || '-'}</span>
                                     <span class="table-player-name">${player.name}</span>
                                 </td>
+                                <td>${stats.attendance}</td>
                                 <td class="stat-highlight">${stats.avg}</td>
                                 <td>${stats.obp}</td>
                                 <td>${stats.ops}</td>
@@ -1414,10 +1436,11 @@ const GameSetupView = {
             tournament: this.gameData.tournament || null,
             round: this.gameData.round || null,
             isFirstBatting: this.isFirstBatting,
+            attendingPlayers: this.attendingPlayers,  // 出席者リスト
             battingOrder: this.battingOrder.map(p => ({ id: p.id, name: p.name, number: p.number })),
             currentPitcherId: this.selectedPitcher.id,
             pitchingRecords: [{ playerId: this.selectedPitcher.id, playerName: this.selectedPitcher.name, inningsPitched: 0, strikeouts: 0, runsAllowed: 0, earnedRuns: 0, hitsAllowed: 0 }],
-            innings: [{ number: 1, teamRuns: 0, teamHits: 0, opponentRuns: 0, opponentHits: 0, atBats: [], isComplete: false }],
+            innings: [{ number: 1, teamRuns: 0, teamHits: 0, opponentRuns: 0, opponentHits: 0, atBats: [], topComplete: false, bottomComplete: false }],
             teamTotalRuns: 0, teamTotalHits: 0, opponentTotalRuns: 0, opponentTotalHits: 0,
             currentInning: 1, isTeamBatting: this.isFirstBatting, currentBatterIndex: 0, currentOuts: 0, isFinished: false,
             pendingRbi: 0, pendingSteals: 0,
@@ -1457,10 +1480,6 @@ const GameScoreView = {
         if (game.isFinished) return this.renderFinishedGame(team, game);
         return `
             <div class="game-screen">
-                <div class="game-header"><div class="header-with-back">
-                    <button class="back-button" onclick="GameScoreView.exitGame()">←</button>
-                    <h1 style="font-size:1rem;">${team.name} vs ${game.opponent}</h1>
-                </div></div>
                 <div class="scoreboard-section">${this.renderScoreboard(team, game)}</div>
                 <div class="input-section">${game.isTeamBatting ? this.renderBattingInput(team, game) : this.renderDefenseInput(team, game)}</div>
             </div>
@@ -1501,25 +1520,20 @@ const GameScoreView = {
         const topTeam = game.isFirstBatting ? team.name : game.opponent;
         const bottomTeam = game.isFirstBatting ? game.opponent : team.name;
         
-        // 現在攻撃中のイニングと攻撃側を判定
-        const currentInningIndex = game.currentInning - 1;
-        const isTopAttacking = game.isFirstBatting ? !game.isDefense : game.isDefense;
-        const isBottomAttacking = game.isFirstBatting ? game.isDefense : !game.isDefense;
-        
         const getTopScore = (inn, inningIndex) => {
-            // 現在のイニングで表側が攻撃中の場合は点数を表示しない
-            if (inningIndex === currentInningIndex && isTopAttacking && !game.isFinished) {
-                return null;
+            // そのイニングが完了していれば点数を表示
+            if (inn && inn.topComplete) {
+                return game.isFirstBatting ? inn.teamRuns : inn.opponentRuns;
             }
-            return game.isFirstBatting ? inn.teamRuns : inn.opponentRuns;
+            return null;
         };
         
         const getBottomScore = (inn, inningIndex) => {
-            // 現在のイニングで裏側が攻撃中の場合は点数を表示しない
-            if (inningIndex === currentInningIndex && isBottomAttacking && !game.isFinished) {
-                return null;
+            // そのイニングが完了していれば点数を表示
+            if (inn && inn.bottomComplete) {
+                return game.isFirstBatting ? inn.opponentRuns : inn.teamRuns;
             }
-            return game.isFirstBatting ? inn.opponentRuns : inn.teamRuns;
+            return null;
         };
         
         const topTotalRuns = game.isFirstBatting ? game.teamTotalRuns : game.opponentTotalRuns;
@@ -1528,15 +1542,18 @@ const GameScoreView = {
         const bottomTotalHits = game.isFirstBatting ? game.opponentTotalHits : game.teamTotalHits;
         
         return `
-            <div class="scoreboard">
-                <table class="scoreboard-table">
-                    <thead><tr><th class="team-name"></th>${[...Array(maxInnings)].map((_, i) => `<th class="inning-cell" onclick="GameScoreView.editInning(${i})">${i + 1}</th>`).join('')}<th class="total">計</th><th class="hits">H</th></tr></thead>
-                    <tbody>
-                        <tr class="team-row"><td class="team-name">${topTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getTopScore(inn, i) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${topTotalRuns || 0}</td><td class="hits">${topTotalHits || 0}</td></tr>
-                        <tr class="team-row"><td class="team-name">${bottomTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getBottomScore(inn, i) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${bottomTotalRuns || 0}</td><td class="hits">${bottomTotalHits || 0}</td></tr>
-                    </tbody>
-                </table>
-                <div style="font-size:0.7rem;text-align:center;color:#9ca3af;margin-top:5px;">スコアをタップで編集</div>
+            <div class="scoreboard-with-back">
+                <button class="scoreboard-back-btn" onclick="GameScoreView.exitGame()">←</button>
+                <div class="scoreboard">
+                    <table class="scoreboard-table">
+                        <thead><tr><th class="team-name"></th>${[...Array(maxInnings)].map((_, i) => `<th class="inning-cell" onclick="GameScoreView.editInning(${i})">${i + 1}</th>`).join('')}<th class="total">計</th><th class="hits">H</th></tr></thead>
+                        <tbody>
+                            <tr class="team-row"><td class="team-name">${topTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getTopScore(inn, i) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${topTotalRuns || 0}</td><td class="hits">${topTotalHits || 0}</td></tr>
+                            <tr class="team-row"><td class="team-name">${bottomTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getBottomScore(inn, i) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${bottomTotalRuns || 0}</td><td class="hits">${bottomTotalHits || 0}</td></tr>
+                        </tbody>
+                    </table>
+                    <div style="font-size:0.7rem;text-align:center;color:#9ca3af;margin-top:5px;">スコアをタップで編集</div>
+                </div>
             </div>
         `;
     },
@@ -1556,23 +1573,23 @@ const GameScoreView = {
             
             <div class="game-main-content">
                 ${(currentInning.atBats || []).length > 0 ? `
-                    <div class="inning-history">
-                        <div class="history-label">このイニング</div>
-                        <div class="history-scroll">
-                            ${(currentInning.atBats || []).map((ab, idx) => `
-                                <div class="history-item ${AtBatResults[ab.result].type}" onclick="GameScoreView.showEditAtBatModal(${idx})">
-                                    <div class="history-name">${ab.playerName}</div>
-                                    <div class="history-result">${AtBatResults[ab.result].icon}</div>
-                                    ${ab.rbi > 0 ? `<div class="history-badge rbi">${ab.rbi}</div>` : ''}
+                    <div class="inning-history-simple">
+                        <div class="history-label-simple">このイニング</div>
+                        ${(currentInning.atBats || []).map((ab, idx) => {
+                            const batterOrder = game.battingOrder.findIndex(b => b.id === ab.playerId) + 1;
+                            return `
+                                <div class="history-item-simple" onclick="GameScoreView.showEditAtBatModal(${idx})">
+                                    <span class="history-order-simple">${batterOrder}番</span>
+                                    <span class="history-name-simple">${ab.playerName}</span>
+                                    <span class="history-result-simple">${AtBatResults[ab.result].name}</span>
                                 </div>
-                            `).join('')}
-                        </div>
+                            `;
+                        }).join('')}
                     </div>
                 ` : ''}
                 
-                <div class="batter-display">
-                    <div class="batter-order">${game.currentBatterIndex + 1}番</div>
-                    <div class="batter-name">${currentBatter ? currentBatter.name : '---'}</div>
+                <div class="batter-display-compact">
+                    ${game.currentBatterIndex + 1}番　${currentBatter ? currentBatter.name : '---'}
                 </div>
                 
                 <div class="result-buttons">
@@ -1667,16 +1684,8 @@ const GameScoreView = {
             <div class="game-main-content defense">
                 <div class="opponent-attack-section">
                     <div class="section-title">相手チームの攻撃</div>
-                    <div class="opponent-stats">
-                        <div class="opponent-stat runs">
-                            <div class="opponent-stat-label">得点</div>
-                            <div class="opponent-stat-control">
-                                <button class="counter-btn minus" onclick="GameScoreView.adjustOpponentScore(-1)">−</button>
-                                <span class="counter-value">${currentInning.opponentRuns || 0}</span>
-                                <button class="counter-btn plus" onclick="GameScoreView.adjustOpponentScore(1)">＋</button>
-                            </div>
-                        </div>
-                        <div class="opponent-stat hits">
+                    <div class="opponent-stats-single">
+                        <div class="opponent-stat-single hits">
                             <div class="opponent-stat-label">被安打</div>
                             <div class="opponent-stat-control">
                                 <button class="counter-btn minus" onclick="GameScoreView.adjustOpponentHits(-1)">−</button>
@@ -1830,11 +1839,13 @@ const GameScoreView = {
         }
         
         atBat.result = result;
-        await this.saveGame();
         
-        // ボタンの選択状態を更新
-        document.querySelectorAll('.modal-result-btn').forEach(btn => btn.classList.remove('selected'));
-        event.target.classList.add('selected');
+        // アウトカウントを再計算
+        const totalOuts = currentInning.atBats.reduce((sum, ab) => sum + (AtBatResults[ab.result].outs || 0), 0);
+        game.currentOuts = totalOuts % 3;
+        
+        await this.saveGame();
+        App.render();
     },
     
     async updateAtBatStat(index, field, amount) {
@@ -2014,7 +2025,35 @@ const GameScoreView = {
     async performChange() {
         const game = App.currentGame;
         const currentInning = game.innings[game.currentInning - 1];
-        if (currentInning) currentInning.isComplete = game.isTeamBatting ? false : true;
+        
+        if (currentInning) {
+            // 表裏の完了フラグを設定
+            if (game.isFirstBatting) {
+                // 先攻チームの場合
+                if (game.isTeamBatting) {
+                    // 自チーム攻撃→守備（表が完了）
+                    currentInning.topComplete = true;
+                } else {
+                    // 自チーム守備→攻撃（裏が完了）
+                    currentInning.bottomComplete = true;
+                    // 投手の失点を相手得点に反映
+                    const totalRunsAllowed = game.pitchingRecords.reduce((sum, r) => sum + r.runsAllowed, 0);
+                    currentInning.opponentRuns = totalRunsAllowed - game.innings.slice(0, game.currentInning - 1).reduce((sum, inn) => sum + (inn.opponentRuns || 0), 0);
+                }
+            } else {
+                // 後攻チームの場合
+                if (game.isTeamBatting) {
+                    // 自チーム攻撃→守備（裏が完了）
+                    currentInning.bottomComplete = true;
+                    // 投手の失点を相手得点に反映
+                    const totalRunsAllowed = game.pitchingRecords.reduce((sum, r) => sum + r.runsAllowed, 0);
+                    currentInning.opponentRuns = totalRunsAllowed - game.innings.slice(0, game.currentInning - 1).reduce((sum, inn) => sum + (inn.opponentRuns || 0), 0);
+                } else {
+                    // 自チーム守備→攻撃（表が完了）
+                    currentInning.topComplete = true;
+                }
+            }
+        }
         
         game.teamTotalRuns = game.innings.reduce((sum, inn) => sum + (inn.teamRuns || 0), 0);
         game.teamTotalHits = game.innings.reduce((sum, inn) => sum + (inn.teamHits || 0), 0);
@@ -2024,7 +2063,7 @@ const GameScoreView = {
         game.isTeamBatting = !game.isTeamBatting;
         if (game.isTeamBatting) {
             game.currentInning++;
-            game.innings.push({ number: game.currentInning, teamRuns: 0, teamHits: 0, opponentRuns: 0, opponentHits: 0, atBats: [], isComplete: false });
+            game.innings.push({ number: game.currentInning, teamRuns: 0, teamHits: 0, opponentRuns: 0, opponentHits: 0, atBats: [], topComplete: false, bottomComplete: false });
         }
         game.currentOuts = 0;
         
