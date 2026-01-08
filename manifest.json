@@ -2,7 +2,7 @@
     "name": "野球スコア管理",
     "short_name": "野球スコア",
     "description": "野球の試合をリアルタイムで記録・管理するアプリ",
-    "start_url": "/",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#f3f4f6",
     "theme_color": "#2563eb",
