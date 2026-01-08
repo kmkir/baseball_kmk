@@ -66,6 +66,7 @@ function calculatePlayerBattingStats(team, playerId) {
     const stats = { 
         games: 0, 
         attendance: 0,  // 参加数
+        plateAppearances: 0,  // 打席数
         atBats: 0, 
         hits: 0, 
         walks: 0, 
@@ -87,15 +88,42 @@ function calculatePlayerBattingStats(team, playerId) {
             (inning.atBats || []).forEach(ab => {
                 if (ab.playerId === playerId) {
                     hasAtBat = true;
-                    stats.atBats++;
+                    stats.plateAppearances++;  // すべての打席をカウント
                     stats.rbis += ab.rbi || 0;
                     stats.stolenBases += ab.stolenBases || 0;
                     switch (ab.result) {
-                        case 'single': stats.hits++; stats.singles++; break;
-                        case 'double': stats.hits++; stats.doubles++; break;
-                        case 'triple': stats.hits++; stats.triples++; break;
-                        case 'homeRun': stats.hits++; stats.homeRuns++; break;
-                        case 'walk': stats.walks++; break;
+                        case 'single': 
+                            stats.atBats++;
+                            stats.hits++; 
+                            stats.singles++; 
+                            break;
+                        case 'double': 
+                            stats.atBats++;
+                            stats.hits++; 
+                            stats.doubles++; 
+                            break;
+                        case 'triple': 
+                            stats.atBats++;
+                            stats.hits++; 
+                            stats.triples++; 
+                            break;
+                        case 'homeRun': 
+                            stats.atBats++;
+                            stats.hits++; 
+                            stats.homeRuns++; 
+                            break;
+                        case 'walk': 
+                        case 'error':
+                            stats.walks++; 
+                            break;
+                        case 'out':
+                        case 'doublePlay':
+                        case 'triplePlay':
+                            stats.atBats++;
+                            break;
+                        case 'sacrifice':
+                            // 犠牲打は打席数に含むが打数には含まない
+                            break;
                     }
                 }
             });
@@ -103,7 +131,7 @@ function calculatePlayerBattingStats(team, playerId) {
         if (hasAtBat) stats.games++;
     });
     const avg = stats.atBats > 0 ? (stats.hits / stats.atBats) : 0;
-    const obp = (stats.atBats + stats.walks) > 0 ? ((stats.hits + stats.walks) / (stats.atBats + stats.walks)) : 0;
+    const obp = stats.plateAppearances > 0 ? ((stats.hits + stats.walks) / stats.plateAppearances) : 0;
     const totalBases = stats.singles + (stats.doubles * 2) + (stats.triples * 3) + (stats.homeRuns * 4);
     const slg = stats.atBats > 0 ? (totalBases / stats.atBats) : 0;
     return { ...stats, avg: avg.toFixed(3).replace('0.', '.'), obp: obp.toFixed(3).replace('0.', '.'), slg: slg.toFixed(3).replace('0.', '.'), ops: (obp + slg).toFixed(3) };
@@ -316,7 +344,7 @@ const TeamManagementView = {
 
 const PlayerManagementView = {
     tab: 'list', // 'list', 'batting', 'pitching'
-    battingSortBy: 'name', // 'name', 'attendance', 'avg', 'obp', 'ops', 'hits', 'homeRuns', 'rbis', 'stolenBases'
+    battingSortBy: 'name', // 'name', 'avg', 'ops', 'obp', 'plateAppearances', 'atBats', 'hits', 'doubles', 'triples', 'homeRuns', 'walks', 'rbis', 'stolenBases', 'attendance'
     battingSortOrder: 'desc', // 'asc', 'desc'
     pitchingSortBy: 'name', // 'name', 'era', 'appearances', 'inningsPitched', 'strikeouts', 'runsAllowed', 'earnedRuns'
     pitchingSortOrder: 'desc', // 'asc', 'desc'
@@ -428,29 +456,44 @@ const PlayerManagementView = {
                             <th class="sticky-col sortable ${this.battingSortBy === 'name' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('name')">
                                 選手 ${this.battingSortBy === 'name' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
-                            <th class="sortable ${this.battingSortBy === 'attendance' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('attendance')">
-                                参加 ${this.battingSortBy === 'attendance' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
-                            </th>
                             <th class="sortable ${this.battingSortBy === 'avg' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('avg')">
                                 打率 ${this.battingSortBy === 'avg' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
-                            </th>
-                            <th class="sortable ${this.battingSortBy === 'obp' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('obp')">
-                                出塁 ${this.battingSortBy === 'obp' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
                             <th class="sortable ${this.battingSortBy === 'ops' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('ops')">
                                 OPS ${this.battingSortBy === 'ops' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
+                            <th class="sortable ${this.battingSortBy === 'obp' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('obp')">
+                                出塁 ${this.battingSortBy === 'obp' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'plateAppearances' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('plateAppearances')">
+                                打席 ${this.battingSortBy === 'plateAppearances' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'atBats' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('atBats')">
+                                打数 ${this.battingSortBy === 'atBats' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
                             <th class="sortable ${this.battingSortBy === 'hits' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('hits')">
                                 安打 ${this.battingSortBy === 'hits' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
+                            <th class="sortable ${this.battingSortBy === 'doubles' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('doubles')">
+                                2B ${this.battingSortBy === 'doubles' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'triples' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('triples')">
+                                3B ${this.battingSortBy === 'triples' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
                             <th class="sortable ${this.battingSortBy === 'homeRuns' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('homeRuns')">
                                 HR ${this.battingSortBy === 'homeRuns' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'walks' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('walks')">
+                                四死 ${this.battingSortBy === 'walks' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
                             <th class="sortable ${this.battingSortBy === 'rbis' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('rbis')">
                                 打点 ${this.battingSortBy === 'rbis' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
                             <th class="sortable ${this.battingSortBy === 'stolenBases' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('stolenBases')">
                                 盗塁 ${this.battingSortBy === 'stolenBases' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'attendance' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('attendance')">
+                                参加 ${this.battingSortBy === 'attendance' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
                             </th>
                         </tr>
                     </thead>
@@ -461,14 +504,19 @@ const PlayerManagementView = {
                                     <span class="table-player-number">#${player.number || '-'}</span>
                                     <span class="table-player-name">${player.name}</span>
                                 </td>
-                                <td>${stats.attendance}</td>
                                 <td class="stat-highlight">${stats.avg}</td>
-                                <td>${stats.obp}</td>
                                 <td>${stats.ops}</td>
+                                <td>${stats.obp}</td>
+                                <td>${stats.plateAppearances}</td>
+                                <td>${stats.atBats}</td>
                                 <td>${stats.hits}</td>
+                                <td>${stats.doubles}</td>
+                                <td>${stats.triples}</td>
                                 <td>${stats.homeRuns}</td>
+                                <td>${stats.walks}</td>
                                 <td>${stats.rbis}</td>
                                 <td>${stats.stolenBases}</td>
+                                <td>${stats.attendance}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -502,13 +550,13 @@ const PlayerManagementView = {
                 valB = b.player.name;
                 return valA.localeCompare(valB, 'ja');
             } else if (this.pitchingSortBy === 'era') {
-                valA = parseFloat(a.stats.era);
-                valB = parseFloat(b.stats.era);
-                // 防御率は低い方が良いので、昇順の場合は通常通り、降順の場合は逆転
+                valA = parseFloat(a.stats.era === '-.--' ? 999 : a.stats.era);
+                valB = parseFloat(b.stats.era === '-.--' ? 999 : b.stats.era);
+                // 防御率は低い方が良い
                 if (this.pitchingSortOrder === 'asc') {
-                    return valA - valB;
+                    return valA - valB;  // 昇順：低い方が先
                 } else {
-                    return valA - valB; // 防御率は低い方が上位
+                    return valB - valA;  // 降順：高い方が先
                 }
             } else {
                 valA = a.stats[this.pitchingSortBy];
@@ -692,15 +740,43 @@ const PlayerDetailView = {
             
             <div class="stats-section">
                 <div class="stats-section-title">打撃成績</div>
-                <div class="stats-grid-detail">
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.avg}</div><div class="stat-box-label">打率</div></div>
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.obp}</div><div class="stat-box-label">出塁率</div></div>
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.ops}</div><div class="stat-box-label">OPS</div></div>
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.atBats}</div><div class="stat-box-label">打席</div></div>
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.hits}</div><div class="stat-box-label">安打</div></div>
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.homeRuns}</div><div class="stat-box-label">HR</div></div>
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.rbis}</div><div class="stat-box-label">打点</div></div>
-                    <div class="stat-box"><div class="stat-box-value">${battingStats.stolenBases}</div><div class="stat-box-label">盗塁</div></div>
+                <div class="card" style="overflow-x:auto;padding:0;">
+                    <table class="stats-table-new">
+                        <thead>
+                            <tr>
+                                <th>打率</th>
+                                <th>OPS</th>
+                                <th>出塁</th>
+                                <th>打席</th>
+                                <th>打数</th>
+                                <th>安打</th>
+                                <th>2B</th>
+                                <th>3B</th>
+                                <th>HR</th>
+                                <th>四死</th>
+                                <th>打点</th>
+                                <th>盗塁</th>
+                                <th>参加</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="stat-highlight">${battingStats.avg}</td>
+                                <td>${battingStats.ops}</td>
+                                <td>${battingStats.obp}</td>
+                                <td>${battingStats.plateAppearances}</td>
+                                <td>${battingStats.atBats}</td>
+                                <td>${battingStats.hits}</td>
+                                <td>${battingStats.doubles}</td>
+                                <td>${battingStats.triples}</td>
+                                <td>${battingStats.homeRuns}</td>
+                                <td>${battingStats.walks}</td>
+                                <td>${battingStats.rbis}</td>
+                                <td>${battingStats.stolenBases}</td>
+                                <td>${battingStats.attendance}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             
@@ -1595,47 +1671,37 @@ const GameScoreView = {
                 <div class="result-buttons">
                     <div class="result-row hit-row">
                         <button class="result-btn hit" onclick="GameScoreView.recordAtBat('single')">
-                            <span class="result-icon">🔵</span>
                             <span class="result-text">ヒット</span>
                         </button>
                         <button class="result-btn hit" onclick="GameScoreView.recordAtBat('double')">
-                            <span class="result-icon">🔵</span>
                             <span class="result-text">2塁打</span>
                         </button>
                         <button class="result-btn hit" onclick="GameScoreView.recordAtBat('triple')">
-                            <span class="result-icon">🔵</span>
                             <span class="result-text">3塁打</span>
                         </button>
                         <button class="result-btn hit hr" onclick="GameScoreView.recordAtBat('homeRun')">
-                            <span class="result-icon">💥</span>
                             <span class="result-text">HR</span>
                         </button>
                     </div>
                     <div class="result-row other-row">
                         <button class="result-btn walk" onclick="GameScoreView.recordAtBat('walk')">
-                            <span class="result-icon">🟡</span>
                             <span class="result-text">四死球</span>
                         </button>
                         <button class="result-btn walk" onclick="GameScoreView.recordAtBat('error')">
-                            <span class="result-icon">🟡</span>
                             <span class="result-text">エラー</span>
                         </button>
                         <button class="result-btn sacrifice" onclick="GameScoreView.recordAtBat('sacrifice')">
-                            <span class="result-icon">🟠</span>
                             <span class="result-text">犠牲</span>
                         </button>
                     </div>
                     <div class="result-row out-row">
                         <button class="result-btn out" onclick="GameScoreView.recordAtBat('out')">
-                            <span class="result-icon">🔴</span>
                             <span class="result-text">アウト</span>
                         </button>
                         <button class="result-btn out" onclick="GameScoreView.recordAtBat('doublePlay')">
-                            <span class="result-icon">🔴</span>
                             <span class="result-text">併殺</span>
                         </button>
                         <button class="result-btn out" onclick="GameScoreView.recordAtBat('triplePlay')">
-                            <span class="result-icon">🔴</span>
                             <span class="result-text">三殺</span>
                         </button>
                     </div>
@@ -1676,13 +1742,13 @@ const GameScoreView = {
         const currentPitcher = game.pitchingRecords.find(r => r.playerId === game.currentPitcherId) || game.pitchingRecords[0];
         
         return `
-            <div class="current-pitcher-display">
+            <div class="current-pitcher-display-small">
                 <div class="current-pitcher-label">投手</div>
                 <div class="current-pitcher-name">${currentPitcher.playerName}</div>
             </div>
             
             <div class="game-main-content defense">
-                <div class="opponent-attack-section">
+                <div class="opponent-attack-section-small">
                     <div class="section-title">相手チームの攻撃</div>
                     <div class="opponent-stats-single">
                         <div class="opponent-stat-single hits">
@@ -1696,13 +1762,22 @@ const GameScoreView = {
                     </div>
                 </div>
                 
-                <div class="pitcher-section">
-                    <div class="pitcher-header">
-                        <div class="section-title">投手成績</div>
-                        <button class="pitcher-change-button" onclick="GameScoreView.showPitcherChange()">
-                            <span>🔄</span> 投手交代
-                        </button>
+                ${game.pitchingRecords.length > 1 ? `
+                    <div class="pitchers-list-section">
+                        <div class="section-title">登板投手</div>
+                        <div class="pitchers-list">
+                            ${game.pitchingRecords.map(r => `
+                                <div class="pitchers-list-item ${r.playerId === game.currentPitcherId ? 'current' : ''}">
+                                    <span class="pitchers-name">${r.playerName}</span>
+                                    <span class="pitchers-stats">${formatInnings(r.inningsPitched)}回 / ${r.strikeouts}K / ${r.earnedRuns}自責</span>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
+                ` : ''}
+                
+                <div class="pitcher-section">
+                    <div class="section-title">投手成績</div>
                     <div class="pitcher-stats-grid">
                         <div class="pitcher-stat-box">
                             <div class="pitcher-stat-label">投球回</div>
@@ -1739,19 +1814,11 @@ const GameScoreView = {
                     </div>
                 </div>
                 
-                ${game.pitchingRecords.length > 1 ? `
-                    <div class="pitchers-list-section">
-                        <div class="section-title">登板投手</div>
-                        <div class="pitchers-list">
-                            ${game.pitchingRecords.map(r => `
-                                <div class="pitchers-list-item ${r.playerId === game.currentPitcherId ? 'current' : ''}">
-                                    <span class="pitchers-name">${r.playerName}</span>
-                                    <span class="pitchers-stats">${formatInnings(r.inningsPitched)}回 / ${r.strikeouts}K / ${r.earnedRuns}自責</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                ` : ''}
+                <div class="pitcher-change-section">
+                    <button class="pitcher-change-button-bottom" onclick="GameScoreView.showPitcherChange()">
+                        <span>🔄</span> 投手交代
+                    </button>
+                </div>
             </div>
             
             <div class="game-footer">
@@ -1845,7 +1912,12 @@ const GameScoreView = {
         game.currentOuts = totalOuts % 3;
         
         await this.saveGame();
-        App.render();
+        
+        // ボタンの選択状態を更新（モーダル内）
+        document.querySelectorAll('.modal-result-btn').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        event.target.classList.add('selected');
     },
     
     async updateAtBatStat(index, field, amount) {
