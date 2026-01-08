@@ -299,6 +299,10 @@ const TeamManagementView = {
 
 const PlayerManagementView = {
     tab: 'list', // 'list', 'batting', 'pitching'
+    battingSortBy: 'name', // 'name', 'avg', 'obp', 'ops', 'hits', 'homeRuns', 'rbis', 'stolenBases'
+    battingSortOrder: 'desc', // 'asc', 'desc'
+    pitchingSortBy: 'name', // 'name', 'era', 'appearances', 'inningsPitched', 'strikeouts', 'runsAllowed', 'earnedRuns'
+    pitchingSortOrder: 'desc', // 'asc', 'desc'
     
     render(team) {
         const players = sortByJapanese([...(team.players || [])], 'name');
@@ -370,84 +374,189 @@ const PlayerManagementView = {
     },
     
     renderBattingStats(team, players) {
+        // 統計情報を計算
+        const playersWithStats = players.map(player => ({
+            player,
+            stats: calculatePlayerBattingStats(team, player.id)
+        }));
+        
+        // 並び替え
+        playersWithStats.sort((a, b) => {
+            let valA, valB;
+            if (this.battingSortBy === 'name') {
+                valA = a.player.name;
+                valB = b.player.name;
+                return valA.localeCompare(valB, 'ja');
+            } else if (this.battingSortBy === 'avg' || this.battingSortBy === 'obp' || this.battingSortBy === 'ops') {
+                valA = parseFloat(a.stats[this.battingSortBy]);
+                valB = parseFloat(b.stats[this.battingSortBy]);
+            } else {
+                valA = a.stats[this.battingSortBy];
+                valB = b.stats[this.battingSortBy];
+            }
+            
+            if (this.battingSortOrder === 'desc') {
+                return valB - valA;
+            } else {
+                return valA - valB;
+            }
+        });
+        
         return `
             <div class="card" style="margin:12px;overflow-x:auto;">
                 <table class="stats-table-new">
                     <thead>
                         <tr>
-                            <th class="sticky-col">選手</th>
-                            <th>打率</th>
-                            <th>出塁</th>
-                            <th>OPS</th>
-                            <th>安打</th>
-                            <th>HR</th>
-                            <th>打点</th>
-                            <th>盗塁</th>
+                            <th class="sticky-col sortable ${this.battingSortBy === 'name' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('name')">
+                                選手 ${this.battingSortBy === 'name' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'avg' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('avg')">
+                                打率 ${this.battingSortBy === 'avg' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'obp' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('obp')">
+                                出塁 ${this.battingSortBy === 'obp' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'ops' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('ops')">
+                                OPS ${this.battingSortBy === 'ops' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'hits' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('hits')">
+                                安打 ${this.battingSortBy === 'hits' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'homeRuns' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('homeRuns')">
+                                HR ${this.battingSortBy === 'homeRuns' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'rbis' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('rbis')">
+                                打点 ${this.battingSortBy === 'rbis' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.battingSortBy === 'stolenBases' ? 'active' : ''}" onclick="PlayerManagementView.sortBatting('stolenBases')">
+                                盗塁 ${this.battingSortBy === 'stolenBases' ? (this.battingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${players.map(player => {
-                            const stats = calculatePlayerBattingStats(team, player.id);
-                            return `
-                                <tr onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
-                                    <td class="sticky-col player-name-cell">
-                                        <span class="table-player-number">#${player.number || '-'}</span>
-                                        <span class="table-player-name">${player.name}</span>
-                                    </td>
-                                    <td class="stat-highlight">${stats.avg}</td>
-                                    <td>${stats.obp}</td>
-                                    <td>${stats.ops}</td>
-                                    <td>${stats.hits}</td>
-                                    <td>${stats.homeRuns}</td>
-                                    <td>${stats.rbis}</td>
-                                    <td>${stats.stolenBases}</td>
-                                </tr>
-                            `;
-                        }).join('')}
+                        ${playersWithStats.map(({ player, stats }) => `
+                            <tr onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
+                                <td class="sticky-col player-name-cell">
+                                    <span class="table-player-number">#${player.number || '-'}</span>
+                                    <span class="table-player-name">${player.name}</span>
+                                </td>
+                                <td class="stat-highlight">${stats.avg}</td>
+                                <td>${stats.obp}</td>
+                                <td>${stats.ops}</td>
+                                <td>${stats.hits}</td>
+                                <td>${stats.homeRuns}</td>
+                                <td>${stats.rbis}</td>
+                                <td>${stats.stolenBases}</td>
+                            </tr>
+                        `).join('')}
                     </tbody>
                 </table>
             </div>
         `;
     },
     
+    sortBatting(field) {
+        if (this.battingSortBy === field) {
+            this.battingSortOrder = this.battingSortOrder === 'desc' ? 'asc' : 'desc';
+        } else {
+            this.battingSortBy = field;
+            this.battingSortOrder = 'desc';
+        }
+        App.render();
+    },
+    
     renderPitchingStats(team, players) {
+        // 統計情報を計算
+        const playersWithStats = players.map(player => ({
+            player,
+            stats: calculatePlayerPitchingStats(team, player.id)
+        }));
+        
+        // 並び替え
+        playersWithStats.sort((a, b) => {
+            let valA, valB;
+            if (this.pitchingSortBy === 'name') {
+                valA = a.player.name;
+                valB = b.player.name;
+                return valA.localeCompare(valB, 'ja');
+            } else if (this.pitchingSortBy === 'era') {
+                valA = parseFloat(a.stats.era);
+                valB = parseFloat(b.stats.era);
+                // 防御率は低い方が良いので、昇順の場合は通常通り、降順の場合は逆転
+                if (this.pitchingSortOrder === 'asc') {
+                    return valA - valB;
+                } else {
+                    return valA - valB; // 防御率は低い方が上位
+                }
+            } else {
+                valA = a.stats[this.pitchingSortBy];
+                valB = b.stats[this.pitchingSortBy];
+                if (this.pitchingSortOrder === 'desc') {
+                    return valB - valA;
+                } else {
+                    return valA - valB;
+                }
+            }
+        });
+        
         return `
             <div class="card" style="margin:12px;overflow-x:auto;">
                 <table class="stats-table-new">
                     <thead>
                         <tr>
-                            <th class="sticky-col">選手</th>
-                            <th>防御率</th>
-                            <th>登板</th>
-                            <th>投球回</th>
-                            <th>奪三振</th>
-                            <th>失点</th>
-                            <th>自責</th>
+                            <th class="sticky-col sortable ${this.pitchingSortBy === 'name' ? 'active' : ''}" onclick="PlayerManagementView.sortPitching('name')">
+                                選手 ${this.pitchingSortBy === 'name' ? (this.pitchingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.pitchingSortBy === 'era' ? 'active' : ''}" onclick="PlayerManagementView.sortPitching('era')">
+                                防御率 ${this.pitchingSortBy === 'era' ? (this.pitchingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.pitchingSortBy === 'appearances' ? 'active' : ''}" onclick="PlayerManagementView.sortPitching('appearances')">
+                                登板 ${this.pitchingSortBy === 'appearances' ? (this.pitchingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.pitchingSortBy === 'inningsPitched' ? 'active' : ''}" onclick="PlayerManagementView.sortPitching('inningsPitched')">
+                                投球回 ${this.pitchingSortBy === 'inningsPitched' ? (this.pitchingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.pitchingSortBy === 'strikeouts' ? 'active' : ''}" onclick="PlayerManagementView.sortPitching('strikeouts')">
+                                奪三振 ${this.pitchingSortBy === 'strikeouts' ? (this.pitchingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.pitchingSortBy === 'runsAllowed' ? 'active' : ''}" onclick="PlayerManagementView.sortPitching('runsAllowed')">
+                                失点 ${this.pitchingSortBy === 'runsAllowed' ? (this.pitchingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
+                            <th class="sortable ${this.pitchingSortBy === 'earnedRuns' ? 'active' : ''}" onclick="PlayerManagementView.sortPitching('earnedRuns')">
+                                自責 ${this.pitchingSortBy === 'earnedRuns' ? (this.pitchingSortOrder === 'desc' ? '▼' : '▲') : ''}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${players.map(player => {
-                            const stats = calculatePlayerPitchingStats(team, player.id);
-                            return `
-                                <tr onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
-                                    <td class="sticky-col player-name-cell">
-                                        <span class="table-player-number">#${player.number || '-'}</span>
-                                        <span class="table-player-name">${player.name}</span>
-                                        ${!player.isPitcher ? '<span class="table-badge">野手</span>' : ''}
-                                    </td>
-                                    <td class="stat-highlight">${stats.era}</td>
-                                    <td>${stats.appearances}</td>
-                                    <td>${stats.inningsPitchedDisplay}</td>
-                                    <td>${stats.strikeouts}</td>
-                                    <td>${stats.runsAllowed}</td>
-                                    <td>${stats.earnedRuns}</td>
-                                </tr>
-                            `;
-                        }).join('')}
+                        ${playersWithStats.map(({ player, stats }) => `
+                            <tr onclick="App.navigate('playerDetail', { currentTeam: App.currentTeam, currentPlayer: App.currentTeam.players.find(p => p.id === '${player.id}') })">
+                                <td class="sticky-col player-name-cell">
+                                    <span class="table-player-number">#${player.number || '-'}</span>
+                                    <span class="table-player-name">${player.name}</span>
+                                    ${!player.isPitcher ? '<span class="table-badge">野手</span>' : ''}
+                                </td>
+                                <td class="stat-highlight">${stats.era}</td>
+                                <td>${stats.appearances}</td>
+                                <td>${stats.inningsPitchedDisplay}</td>
+                                <td>${stats.strikeouts}</td>
+                                <td>${stats.runsAllowed}</td>
+                                <td>${stats.earnedRuns}</td>
+                            </tr>
+                        `).join('')}
                     </tbody>
                 </table>
             </div>
         `;
+    },
+    
+    sortPitching(field) {
+        if (this.pitchingSortBy === field) {
+            this.pitchingSortOrder = this.pitchingSortOrder === 'desc' ? 'asc' : 'desc';
+        } else {
+            this.pitchingSortBy = field;
+            this.pitchingSortOrder = field === 'era' ? 'asc' : 'desc'; // 防御率はデフォルト昇順
+        }
+        App.render();
     },
     
     setTab(tab) {
@@ -885,14 +994,16 @@ const GameSetupView = {
                     </div>
                     <div class="setup-row">
                         <label class="setup-label">種別</label>
-                        <div class="setup-toggle-group">
-                            <button type="button" class="setup-toggle-btn ${this.gameData.gameType !== '公式戦' ? 'active practice' : ''}" onclick="GameSetupView.setGameType('練習試合')">
-                                <span class="toggle-icon">⚾</span>
-                                <span>練習試合</span>
+                        <div class="game-type-select">
+                            <button type="button" class="game-type-btn ${this.gameData.gameType !== '公式戦' ? 'active practice' : ''}" onclick="GameSetupView.setGameType('練習試合')">
+                                <div class="game-type-icon">⚾</div>
+                                <div class="game-type-label">練習試合</div>
+                                <div class="game-type-desc">非公式の試合</div>
                             </button>
-                            <button type="button" class="setup-toggle-btn ${this.gameData.gameType === '公式戦' ? 'active official' : ''}" onclick="GameSetupView.setGameType('公式戦')">
-                                <span class="toggle-icon">🏆</span>
-                                <span>公式戦</span>
+                            <button type="button" class="game-type-btn ${this.gameData.gameType === '公式戦' ? 'active official' : ''}" onclick="GameSetupView.setGameType('公式戦')">
+                                <div class="game-type-icon">🏆</div>
+                                <div class="game-type-label">公式戦</div>
+                                <div class="game-type-desc">大会・リーグ戦</div>
                             </button>
                         </div>
                     </div>
@@ -971,16 +1082,16 @@ const GameSetupView = {
                                 <div>下から選手をドラッグ<br>または タップして追加</div>
                             </div>
                         ` : this.battingOrder.map((player, index) => `
-                            <div class="lineup-slot filled" draggable="true" 
+                            <div class="lineup-slot-new" draggable="true" 
                                  ondragstart="GameSetupView.dragStart(event, ${index}, 'lineup')"
                                  ondragover="GameSetupView.dragOver(event)"
                                  ondrop="GameSetupView.dropOnSlot(event, ${index})">
-                                <div class="slot-order">${index + 1}</div>
-                                <div class="slot-player">
-                                    <span class="slot-number">#${player.number || '-'}</span>
-                                    <span class="slot-name">${player.name}</span>
+                                <div class="lineup-order-badge">${index + 1}番</div>
+                                <div class="lineup-player-info">
+                                    <span class="lineup-player-number">#${player.number || '-'}</span>
+                                    <span class="lineup-player-name">${player.name}</span>
                                 </div>
-                                <button class="slot-remove" onclick="GameSetupView.removeFromOrder(${index})">✕</button>
+                                <button class="lineup-remove-btn" onclick="GameSetupView.removeFromOrder(${index})">×</button>
                             </div>
                         `).join('')}
                     </div>
@@ -1333,8 +1444,28 @@ const GameScoreView = {
         const innings = game.innings || [];
         const topTeam = game.isFirstBatting ? team.name : game.opponent;
         const bottomTeam = game.isFirstBatting ? game.opponent : team.name;
-        const getTopScore = (inn) => game.isFirstBatting ? inn.teamRuns : inn.opponentRuns;
-        const getBottomScore = (inn) => game.isFirstBatting ? inn.opponentRuns : inn.teamRuns;
+        
+        // 現在攻撃中のイニングと攻撃側を判定
+        const currentInningIndex = game.currentInning - 1;
+        const isTopAttacking = game.isFirstBatting ? !game.isDefense : game.isDefense;
+        const isBottomAttacking = game.isFirstBatting ? game.isDefense : !game.isDefense;
+        
+        const getTopScore = (inn, inningIndex) => {
+            // 現在のイニングで表側が攻撃中の場合は点数を表示しない
+            if (inningIndex === currentInningIndex && isTopAttacking && !game.isFinished) {
+                return null;
+            }
+            return game.isFirstBatting ? inn.teamRuns : inn.opponentRuns;
+        };
+        
+        const getBottomScore = (inn, inningIndex) => {
+            // 現在のイニングで裏側が攻撃中の場合は点数を表示しない
+            if (inningIndex === currentInningIndex && isBottomAttacking && !game.isFinished) {
+                return null;
+            }
+            return game.isFirstBatting ? inn.opponentRuns : inn.teamRuns;
+        };
+        
         const topTotalRuns = game.isFirstBatting ? game.teamTotalRuns : game.opponentTotalRuns;
         const bottomTotalRuns = game.isFirstBatting ? game.opponentTotalRuns : game.teamTotalRuns;
         const topTotalHits = game.isFirstBatting ? game.teamTotalHits : game.opponentTotalHits;
@@ -1345,8 +1476,8 @@ const GameScoreView = {
                 <table class="scoreboard-table">
                     <thead><tr><th class="team-name"></th>${[...Array(maxInnings)].map((_, i) => `<th class="inning-cell" onclick="GameScoreView.editInning(${i})">${i + 1}</th>`).join('')}<th class="total">計</th><th class="hits">H</th></tr></thead>
                     <tbody>
-                        <tr class="team-row"><td class="team-name">${topTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getTopScore(inn) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${topTotalRuns || 0}</td><td class="hits">${topTotalHits || 0}</td></tr>
-                        <tr class="team-row"><td class="team-name">${bottomTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getBottomScore(inn) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${bottomTotalRuns || 0}</td><td class="hits">${bottomTotalHits || 0}</td></tr>
+                        <tr class="team-row"><td class="team-name">${topTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getTopScore(inn, i) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${topTotalRuns || 0}</td><td class="hits">${topTotalHits || 0}</td></tr>
+                        <tr class="team-row"><td class="team-name">${bottomTeam}</td>${[...Array(maxInnings)].map((_, i) => { const inn = innings[i]; const score = inn ? getBottomScore(inn, i) : null; return `<td class="score-cell ${score !== null ? 'has-score' : ''}" onclick="GameScoreView.editInning(${i})">${score !== null ? score : '-'}</td>`; }).join('')}<td class="total">${bottomTotalRuns || 0}</td><td class="hits">${bottomTotalHits || 0}</td></tr>
                     </tbody>
                 </table>
                 <div style="font-size:0.7rem;text-align:center;color:#9ca3af;margin-top:5px;">スコアをタップで編集</div>
@@ -1361,18 +1492,9 @@ const GameScoreView = {
         const pendingSteals = game.pendingSteals || 0;
         
         return `
-            <div class="game-status-header attack">
-                <div class="status-inning">
-                    <span class="status-inning-num">${game.currentInning}</span>
-                    <span class="status-inning-label">回</span>
-                </div>
-                <div class="status-phase">
-                    <span class="status-phase-icon">⚾</span>
-                    <span class="status-phase-text">攻撃中</span>
-                </div>
-                <div class="status-outs">
-                    ${[0,1,2].map(i => `<div class="status-out-dot ${i < game.currentOuts ? 'active' : ''}"></div>`).join('')}
-                    <span class="status-out-label">${game.currentOuts}OUT</span>
+            <div class="outs-display">
+                <div class="outs-circles">
+                    ${[0,1,2].map(i => `<div class="out-circle ${i < game.currentOuts ? 'active' : ''}">🔴</div>`).join('')}
                 </div>
             </div>
             
@@ -1481,19 +1603,9 @@ const GameScoreView = {
         const currentPitcher = game.pitchingRecords.find(r => r.playerId === game.currentPitcherId) || game.pitchingRecords[0];
         
         return `
-            <div class="game-status-header defense">
-                <div class="status-inning">
-                    <span class="status-inning-num">${game.currentInning}</span>
-                    <span class="status-inning-label">回</span>
-                </div>
-                <div class="status-phase">
-                    <span class="status-phase-icon">🛡️</span>
-                    <span class="status-phase-text">守備中</span>
-                </div>
-                <div class="status-pitcher">
-                    <span class="status-pitcher-label">投手</span>
-                    <span class="status-pitcher-name">${currentPitcher.playerName}</span>
-                </div>
+            <div class="current-pitcher-display">
+                <div class="current-pitcher-label">投手</div>
+                <div class="current-pitcher-name">${currentPitcher.playerName}</div>
             </div>
             
             <div class="game-main-content defense">
