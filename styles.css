@@ -3445,3 +3445,119 @@ body {
 .modal-result-btn.sacrifice.selected {
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
 }
+
+/* ========================================
+   代打機能
+   ======================================== */
+
+.pinch-hitter-section {
+    margin: 12px 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.pinch-hitter-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pinch-hitter-btn:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
+/* 代打モーダル */
+.pinch-hitter-modal {
+    max-width: 400px;
+    width: 90%;
+}
+
+.current-batter-info {
+    background: var(--bg-color);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.pinch-hitter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.pinch-hitter-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pinch-hitter-item:hover {
+    background: var(--bg-color);
+    border-color: var(--primary-color);
+}
+
+.pinch-hitter-item:active {
+    transform: scale(0.98);
+}
+
+.player-number-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+}
+
+.player-name-text {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.select-arrow {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
+@media screen and (max-width: 375px) {
+    .pinch-hitter-btn {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+    
+    .pinch-hitter-list {
+        max-height: 300px;
+    }
+    
+    .pinch-hitter-item {
+        padding: 12px 14px;
+    }
+    
+    .player-name-text {
+        font-size: 0.95rem;
+    }
+}
