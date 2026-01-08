@@ -3127,3 +3127,159 @@ body {
     50% { transform: scale(1.05); }
     100% { transform: scale(1); }
 }
+
+/* ========================================
+   選手名の横表示（投手情報）
+   ======================================== */
+
+.table-player-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.player-name-cell {
+    white-space: nowrap !important;
+}
+
+/* ========================================
+   投手成績グリッド - iOS対応
+   ======================================== */
+
+.pitcher-stats-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+}
+
+@media screen and (max-width: 375px) {
+    .pitcher-stats-grid-compact {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    .pitcher-stat-box {
+        padding: 12px;
+    }
+    
+    .pitcher-stat-label {
+        font-size: 0.75rem;
+    }
+    
+    .pitcher-stat-control {
+        gap: 8px;
+    }
+    
+    .counter-btn.small {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    
+    .pitcher-stat-value {
+        font-size: 1.3rem;
+    }
+}
+
+/* ========================================
+   選手詳細画面 - ヘッダー改善
+   ======================================== */
+
+.header h1 {
+    display: flex;
+    align-items: center;
+}
+
+/* ========================================
+   画像変更ヒントの削除
+   ======================================== */
+
+.image-change-hint {
+    display: none;
+}
+
+/* ========================================
+   モーダルの視覚的フィードバック強化
+   ======================================== */
+
+.modal-result-btn:active {
+    transform: scale(0.94);
+    transition: transform 0.1s;
+}
+
+.modal-result-btn.selected {
+    animation: buttonFeedback 0.3s ease-out;
+}
+
+@keyframes buttonFeedback {
+    0% { 
+        transform: scale(1); 
+    }
+    50% { 
+        transform: scale(1.08); 
+    }
+    100% { 
+        transform: scale(1); 
+    }
+}
+
+/* ========================================
+   イニング編集モーダル用
+   ======================================== */
+
+.at-bat-item {
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: var(--bg-color);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.at-bat-item:hover {
+    background: #e5e7eb;
+}
+
+.at-bat-item:active {
+    transform: scale(0.98);
+}
+
+.at-bat-player {
+    font-weight: 700;
+    flex: 1;
+}
+
+.at-bat-result {
+    font-size: 1.2rem;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: white;
+}
+
+.at-bat-stats {
+    display: flex;
+    gap: 6px;
+}
+
+.stat-badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.stat-badge.rbi {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--hit-color);
+}
+
+.stat-badge.steal {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--walk-color);
+}
