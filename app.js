@@ -1689,6 +1689,12 @@ const GameScoreView = {
                     ${game.currentBatterIndex + 1}番　${currentBatter ? currentBatter.name : '---'}
                 </div>
                 
+                <div class="pinch-hitter-section">
+                    <button class="pinch-hitter-btn" onclick="GameScoreView.showPinchHitterModal()">
+                        <span>🔄</span> 代打
+                    </button>
+                </div>
+                
                 <div class="result-buttons">
                     <div class="result-row hit-row">
                         <button class="result-btn hit" onclick="GameScoreView.recordAtBat('single')">
@@ -1982,6 +1988,86 @@ const GameScoreView = {
         
         await this.saveGame();
         App.render();
+    },
+    
+    showPinchHitterModal() {
+        const game = App.currentGame;
+        const team = App.currentTeam;
+        const currentBatterIndex = game.currentBatterIndex;
+        const currentBatter = game.battingOrder[currentBatterIndex];
+        
+        // 出場していない選手を抽出
+        const playedPlayerIds = new Set();
+        game.innings.forEach(inning => {
+            (inning.atBats || []).forEach(ab => {
+                playedPlayerIds.add(ab.playerId);
+            });
+        });
+        
+        // 現在の打順に含まれる選手も除外
+        game.battingOrder.forEach(batter => {
+            playedPlayerIds.add(batter.id);
+        });
+        
+        // 出席者で未出場の選手
+        const availablePlayers = (team.players || [])
+            .filter(p => game.attendingPlayers && game.attendingPlayers.includes(p.id))
+            .filter(p => !playedPlayerIds.has(p.id));
+        
+        if (availablePlayers.length === 0) {
+            alert('代打可能な選手がいません。');
+            return;
+        }
+        
+        // モーダルを作成
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal pinch-hitter-modal">
+                <div class="modal-header">
+                    <span class="modal-title">代打を選択</span>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="current-batter-info">
+                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">交代前</div>
+                        <div style="font-size:1.1rem;font-weight:700;">${currentBatterIndex + 1}番　${currentBatter.name}</div>
+                    </div>
+                    <div class="pinch-hitter-list">
+                        ${availablePlayers.map(player => `
+                            <div class="pinch-hitter-item" onclick="GameScoreView.selectPinchHitter('${player.id}', '${player.name}', ${player.number || 0})">
+                                <span class="player-number-badge">#${player.number || '-'}</span>
+                                <span class="player-name-text">${player.name}</span>
+                                <span class="select-arrow">→</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    },
+    
+    async selectPinchHitter(playerId, playerName, playerNumber) {
+        const game = App.currentGame;
+        const currentBatterIndex = game.currentBatterIndex;
+        
+        // 打順の選手を交代
+        game.battingOrder[currentBatterIndex] = {
+            id: playerId,
+            name: playerName,
+            number: playerNumber
+        };
+        
+        // モーダルを閉じる
+        document.querySelector('.modal-overlay')?.remove();
+        
+        // 保存して再描画
+        await this.saveGame();
+        App.render();
+        
+        // 通知
+        alert(`${currentBatterIndex + 1}番　${playerName}に交代しました。`);
     },
     
     editAtBat(index) {
