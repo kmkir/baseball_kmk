@@ -1,14 +1,14 @@
-   name: Keep Alive
+name: Keep Alive
    
-   on:
-     schedule:
-       - cron: '0 0 */30 * *'  # 30日ごと
-     workflow_dispatch:  # 手動実行も可能
+on:
+   schedule:
+      - cron: '0 0 */30 * *'  # 30日ごと
+   workflow_dispatch:  # 手動実行も可能
    
-   jobs:
-     keep-alive:
-       runs-on: ubuntu-latest
-       steps:
+jobs:
+   keep-alive:
+      runs-on: ubuntu-latest
+      steps:
          - name: Access App
            run: |
              curl -I https://kmkir.github.io/baseball_kmk/index.html
