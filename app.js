@@ -2301,6 +2301,8 @@ const GameScoreView = {
 // ========================================
 
 const InningEditView = {
+    tab: 'batting', // 'batting' or 'pitching'
+    
     render(team, game, inningIndex) {
         const inning = game.innings[inningIndex];
         if (!inning) return '<div>イニングが見つかりません</div>';
@@ -2311,6 +2313,29 @@ const InningEditView = {
                 <h1>${inningIndex + 1}回の編集</h1>
             </div></div>
             
+            <div class="tab-navigation" style="display:flex;gap:0;margin:12px 16px;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+                <button class="tab-btn ${this.tab === 'batting' ? 'active' : ''}" 
+                        onclick="InningEditView.switchTab('batting')"
+                        style="flex:1;padding:14px;border:none;background:${this.tab === 'batting' ? 'var(--primary-color)' : 'white'};color:${this.tab === 'batting' ? 'white' : 'var(--text-primary)'};font-weight:700;cursor:pointer;transition:all 0.2s;">
+                    バッティング内容
+                </button>
+                <button class="tab-btn ${this.tab === 'pitching' ? 'active' : ''}" 
+                        onclick="InningEditView.switchTab('pitching')"
+                        style="flex:1;padding:14px;border:none;background:${this.tab === 'pitching' ? 'var(--primary-color)' : 'white'};color:${this.tab === 'pitching' ? 'white' : 'var(--text-primary)'};font-weight:700;cursor:pointer;transition:all 0.2s;">
+                    ピッチング情報
+                </button>
+            </div>
+            
+            ${this.tab === 'batting' ? this.renderBattingTab(team, game, inning, inningIndex) : this.renderPitchingTab(team, game, inning, inningIndex)}
+            
+            <div class="p-12">
+                <button class="btn btn-primary" onclick="App.navigate('gameScore', { currentTeam: App.currentTeam, currentGame: App.currentGame })">完了</button>
+            </div>
+        `;
+    },
+    
+    renderBattingTab(team, game, inning, inningIndex) {
+        return `
             <div class="card">
                 <div class="card-title">${team.name}の攻撃</div>
                 <div style="display:flex;gap:20px;justify-content:center;">
@@ -2358,23 +2383,89 @@ const InningEditView = {
             ${(inning.atBats || []).length > 0 ? `
                 <div class="card">
                     <div class="card-title">打席結果</div>
-                    ${inning.atBats.map((ab, idx) => `
-                        <div class="at-bat-item" onclick="InningEditView.editAtBat(${idx})">
-                            <span class="at-bat-player">${ab.playerName}</span>
-                            <span class="at-bat-result ${AtBatResults[ab.result]?.type || 'out'}">${AtBatResults[ab.result]?.icon || ab.result}</span>
-                            <div class="at-bat-stats">
-                                ${ab.rbi > 0 ? `<span class="stat-badge rbi">打点${ab.rbi}</span>` : ''}
-                                ${ab.stolenBases > 0 ? `<span class="stat-badge steal">盗${ab.stolenBases}</span>` : ''}
+                    ${inning.atBats.map((ab, idx) => {
+                        // 打順を取得
+                        const batterOrder = game.battingOrder.findIndex(b => b.id === ab.playerId);
+                        const orderText = batterOrder >= 0 ? `${batterOrder + 1}番` : '代打';
+                        
+                        return `
+                            <div class="at-bat-item" onclick="InningEditView.editAtBat(${idx})">
+                                <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                                    <span class="batting-order-badge">${orderText}</span>
+                                    <span class="at-bat-player">${ab.playerName}</span>
+                                </div>
+                                <span class="at-bat-result ${AtBatResults[ab.result]?.type || 'out'}">${AtBatResults[ab.result]?.icon || ab.result}</span>
+                                <div class="at-bat-stats">
+                                    ${ab.rbi > 0 ? `<span class="stat-badge rbi">打点${ab.rbi}</span>` : ''}
+                                    ${ab.stolenBases > 0 ? `<span class="stat-badge steal">盗${ab.stolenBases}</span>` : ''}
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             ` : ''}
-            
-            <div class="p-12">
-                <button class="btn btn-primary" onclick="App.navigate('gameScore', { currentTeam: App.currentTeam, currentGame: App.currentGame })">完了</button>
+        `;
+    },
+    
+    renderPitchingTab(team, game, inning, inningIndex) {
+        // このイニングで登板した投手を取得
+        const pitchersInInning = game.pitchingRecords.filter(r => {
+            // 投球回から該当イニングで投げたか判定
+            // 簡易的に全投手を表示
+            return true;
+        });
+        
+        return `
+            <div class="card">
+                <div class="card-title">投手成績編集</div>
+                ${pitchersInInning.map(pitcher => `
+                    <div class="pitcher-edit-item">
+                        <div class="pitcher-edit-header">
+                            <span class="pitcher-name-large">${pitcher.playerName}</span>
+                        </div>
+                        <div class="pitcher-edit-stats">
+                            <div class="pitcher-edit-stat">
+                                <div class="stat-label-small">投球回</div>
+                                <div class="counter-control-small">
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'inningsPitched', -1)">−</button>
+                                    <span>${formatInnings(pitcher.inningsPitched)}</span>
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'inningsPitched', 1)">＋</button>
+                                </div>
+                            </div>
+                            <div class="pitcher-edit-stat">
+                                <div class="stat-label-small">奪三振</div>
+                                <div class="counter-control-small">
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'strikeouts', -1)">−</button>
+                                    <span>${pitcher.strikeouts}</span>
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'strikeouts', 1)">＋</button>
+                                </div>
+                            </div>
+                            <div class="pitcher-edit-stat">
+                                <div class="stat-label-small">失点</div>
+                                <div class="counter-control-small">
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'runsAllowed', -1)">−</button>
+                                    <span>${pitcher.runsAllowed}</span>
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'runsAllowed', 1)">＋</button>
+                                </div>
+                            </div>
+                            <div class="pitcher-edit-stat">
+                                <div class="stat-label-small">自責点</div>
+                                <div class="counter-control-small">
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'earnedRuns', -1)">−</button>
+                                    <span>${pitcher.earnedRuns}</span>
+                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'earnedRuns', 1)">＋</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         `;
+    },
+    
+    switchTab(tab) {
+        this.tab = tab;
+        App.render();
     },
     
     async adjust(field, amount) {
@@ -2386,6 +2477,24 @@ const InningEditView = {
         game.teamTotalHits = game.innings.reduce((sum, inn) => sum + (inn.teamHits || 0), 0);
         game.opponentTotalRuns = game.innings.reduce((sum, inn) => sum + (inn.opponentRuns || 0), 0);
         game.opponentTotalHits = game.innings.reduce((sum, inn) => sum + (inn.opponentHits || 0), 0);
+        
+        const team = App.currentTeam;
+        const gameIndex = team.games.findIndex(g => g.id === game.id);
+        if (gameIndex >= 0) team.games[gameIndex] = game;
+        await App.saveTeam(team);
+        App.render();
+    },
+    
+    async adjustPitching(playerId, field, amount) {
+        const game = App.currentGame;
+        const pitcher = game.pitchingRecords.find(r => r.playerId === playerId);
+        if (!pitcher) return;
+        
+        if (field === 'inningsPitched') {
+            pitcher.inningsPitched = Math.max(0, pitcher.inningsPitched + amount);
+        } else {
+            pitcher[field] = Math.max(0, (pitcher[field] || 0) + amount);
+        }
         
         const team = App.currentTeam;
         const gameIndex = team.games.findIndex(g => g.id === game.id);
