@@ -3561,3 +3561,115 @@ body {
         font-size: 0.95rem;
     }
 }
+
+/* ========================================
+   イニング編集 - 打順バッジ
+   ======================================== */
+
+.batting-order-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ========================================
+   イニング編集 - 投手編集
+   ======================================== */
+
+.pitcher-edit-item {
+    background: var(--bg-color);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.pitcher-edit-header {
+    margin-bottom: 16px;
+}
+
+.pitcher-name-large {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.pitcher-edit-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.pitcher-edit-stat {
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-label-small {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-align: center;
+}
+
+.counter-control-small {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.counter-control-small button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    background: white;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.counter-control-small button:active {
+    transform: scale(0.95);
+    background: var(--bg-color);
+}
+
+.counter-control-small span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-width: 35px;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+@media screen and (max-width: 375px) {
+    .pitcher-edit-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .counter-control-small button {
+        width: 28px;
+        height: 28px;
+        font-size: 1.1rem;
+    }
+    
+    .counter-control-small span {
+        font-size: 1rem;
+        min-width: 30px;
+    }
+}
+
+/* タブボタンのホバー効果 */
+.tab-btn:active {
+    transform: scale(0.98);
+}
