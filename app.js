@@ -278,17 +278,45 @@ const HomeView = {
             ` : `
                 <div class="card"><div class="card-title">チームを選択</div></div>
                 ${teams.map(team => `
-                    <div class="list-item" onclick="App.navigate('yearList', { currentTeam: App.getTeam('${team.id}') })">
-                        <div class="list-item-icon">${team.name.charAt(0)}</div>
-                        <div class="list-item-content">
+                    <div class="team-card-with-image">
+                        ${team.imageUrl ? `
+                            <div class="team-image-container" onclick="HomeView.uploadTeamImage('${team.id}')">
+                                <img src="${team.imageUrl}" class="team-image" alt="${team.name}">
+                            </div>
+                        ` : `
+                            <div class="team-image-placeholder" onclick="HomeView.uploadTeamImage('${team.id}')">
+                                <div class="placeholder-icon-small">📷</div>
+                            </div>
+                        `}
+                        <div class="team-card-content" onclick="App.navigate('yearList', { currentTeam: App.getTeam('${team.id}') })">
                             <div class="list-item-title">${team.name}</div>
                             <div class="list-item-subtitle">${(team.players || []).length}人 • ${(team.games || []).length}試合</div>
                         </div>
-                        <div class="list-item-arrow">›</div>
+                        <div class="list-item-arrow" onclick="App.navigate('yearList', { currentTeam: App.getTeam('${team.id}') })">›</div>
                     </div>
                 `).join('')}
             `}
         `;
+    },
+    
+    async uploadTeamImage(teamId) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const imageUrl = await Database.uploadImage(file, `teams/${teamId}/${file.name}`);
+            
+            const team = App.teams.find(t => t.id === teamId);
+            if (team) {
+                team.imageUrl = imageUrl;
+                await App.saveTeam(team);
+                App.render();
+            }
+        };
+        input.click();
     }
 };
 
@@ -1010,6 +1038,10 @@ const GameListView = {
         const games = (team.games || []).filter(g => getYear(g.date) === year).sort((a, b) => new Date(b.date) - new Date(a.date));
         const wins = games.filter(g => g.teamTotalRuns > g.opponentTotalRuns).length;
         const losses = games.filter(g => g.teamTotalRuns < g.opponentTotalRuns).length;
+        
+        // 年間統計を計算
+        const yearStats = this.calculateYearStats(team, year);
+        
         return `
             <div class="header"><div class="header-with-back">
                 <button class="back-button" onclick="App.navigate('yearList', {currentTeam: App.currentTeam})">←</button>
@@ -1022,6 +1054,45 @@ const GameListView = {
                     <div class="stat-card"><div class="stat-value">${games.length - wins - losses}</div><div class="stat-label">分</div></div>
                 </div>
             </div>
+            
+            ${yearStats.homeRunLeaders.length > 0 ? `
+                <div class="card">
+                    <div class="card-title">🏆 ${year}年 成績トップ3</div>
+                    <div class="year-leaders">
+                        <div class="leader-section">
+                            <div class="leader-title">本塁打王</div>
+                            ${yearStats.homeRunLeaders.map((p, idx) => `
+                                <div class="leader-item">
+                                    <span class="leader-rank">${idx + 1}位</span>
+                                    <span class="leader-name">${p.name}</span>
+                                    <span class="leader-stat">${p.homeRuns}本</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="leader-section">
+                            <div class="leader-title">OPSトップ</div>
+                            ${yearStats.opsLeaders.map((p, idx) => `
+                                <div class="leader-item">
+                                    <span class="leader-rank">${idx + 1}位</span>
+                                    <span class="leader-name">${p.name}</span>
+                                    <span class="leader-stat">${p.ops}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="leader-section">
+                            <div class="leader-title">出塁率トップ</div>
+                            ${yearStats.obpLeaders.map((p, idx) => `
+                                <div class="leader-item">
+                                    <span class="leader-rank">${idx + 1}位</span>
+                                    <span class="leader-name">${p.name}</span>
+                                    <span class="leader-stat">${p.obp}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+            
             <div class="card"><button class="btn btn-primary" onclick="GameSetupView.reset(); App.navigate('gameSetup', { currentTeam: App.currentTeam })">＋ 試合を追加</button></div>
             ${games.length === 0 ? `<div class="empty-state"><div class="empty-state-icon">⚾</div><div class="empty-state-text">${year}年の試合はありません</div></div>` : games.map(game => {
                 const isWin = game.teamTotalRuns > game.opponentTotalRuns;
@@ -1045,6 +1116,92 @@ const GameListView = {
             }).join('')}
         `;
     },
+    
+    calculateYearStats(team, year) {
+        // その年の試合のみを対象に統計を計算
+        const yearGames = (team.games || []).filter(g => getYear(g.date) === year);
+        
+        // 選手ごとの統計を計算
+        const playerStats = {};
+        team.players.forEach(player => {
+            const stats = {
+                playerId: player.id,
+                name: player.name,
+                plateAppearances: 0,
+                atBats: 0,
+                hits: 0,
+                walks: 0,
+                homeRuns: 0,
+                singles: 0,
+                doubles: 0,
+                triples: 0
+            };
+            
+            yearGames.forEach(game => {
+                (game.innings || []).forEach(inning => {
+                    (inning.atBats || []).forEach(ab => {
+                        if (ab.playerId === player.id) {
+                            stats.plateAppearances++;
+                            switch (ab.result) {
+                                case 'single':
+                                    stats.atBats++; stats.hits++; stats.singles++; break;
+                                case 'double':
+                                    stats.atBats++; stats.hits++; stats.doubles++; break;
+                                case 'triple':
+                                    stats.atBats++; stats.hits++; stats.triples++; break;
+                                case 'homeRun':
+                                    stats.atBats++; stats.hits++; stats.homeRuns++; break;
+                                case 'walk':
+                                case 'error':
+                                    stats.walks++; break;
+                                case 'out':
+                                case 'doublePlay':
+                                case 'triplePlay':
+                                    stats.atBats++; break;
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // OBP計算
+            stats.obp = stats.plateAppearances > 0 
+                ? ((stats.hits + stats.walks) / stats.plateAppearances).toFixed(3)
+                : '.000';
+            
+            // SLG計算
+            const totalBases = stats.singles + (stats.doubles * 2) + (stats.triples * 3) + (stats.homeRuns * 4);
+            stats.slg = stats.atBats > 0 ? (totalBases / stats.atBats).toFixed(3) : '.000';
+            
+            // OPS計算
+            stats.ops = (parseFloat(stats.obp) + parseFloat(stats.slg)).toFixed(3);
+            
+            playerStats[player.id] = stats;
+        });
+        
+        // トップ3を抽出
+        const allStats = Object.values(playerStats).filter(s => s.atBats >= 3); // 最低3打席
+        
+        const homeRunLeaders = allStats
+            .filter(s => s.homeRuns > 0)
+            .sort((a, b) => b.homeRuns - a.homeRuns)
+            .slice(0, 3);
+        
+        const opsLeaders = allStats
+            .sort((a, b) => parseFloat(b.ops) - parseFloat(a.ops))
+            .slice(0, 3);
+        
+        const obpLeaders = allStats
+            .sort((a, b) => parseFloat(b.obp) - parseFloat(a.obp))
+            .slice(0, 3);
+        
+        return {
+            homeRunLeaders,
+            opsLeaders,
+            obpLeaders
+        };
+    },
+    
     async deleteGame(gameId) {
         if (confirm('この試合を削除しますか？')) {
             const team = App.currentTeam;
@@ -1598,6 +1755,9 @@ const GameScoreView = {
                         ${isWin ? '勝利' : isLoss ? '敗北' : '引き分け'}
                     </div>
                 </div>
+            </div>
+            <div class="card">
+                <button class="btn btn-primary" onclick="GameScoreView.showAttendanceEditor()">参加メンバーを編集</button>
             </div>
             <div class="card">
                 <button class="btn btn-outline" onclick="GameScoreView.resumeGame()">試合を再開</button>
@@ -2291,6 +2451,60 @@ const GameScoreView = {
         await App.saveTeam(team);
     },
     
+    showAttendanceEditor() {
+        const game = App.currentGame;
+        const team = App.currentTeam;
+        const attendingIds = game.attendingPlayers || [];
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal" style="max-width:500px;width:90%;">
+                <div class="modal-header">
+                    <span class="modal-title">参加メンバーを編集</span>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div style="max-height:400px;overflow-y:auto;">
+                        ${team.players.map(player => {
+                            const isAttending = attendingIds.includes(player.id);
+                            return `
+                                <div class="attendance-item" style="display:flex;align-items:center;gap:12px;padding:12px;background:${isAttending ? 'rgba(16,185,129,0.1)' : 'white'};border:2px solid ${isAttending ? 'var(--success-color)' : 'var(--border-color)'};border-radius:10px;margin-bottom:8px;cursor:pointer;" 
+                                     onclick="GameScoreView.toggleAttendance('${player.id}')">
+                                    <div style="width:24px;height:24px;border-radius:6px;border:2px solid ${isAttending ? 'var(--success-color)' : 'var(--border-color)'};background:${isAttending ? 'var(--success-color)' : 'white'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;">
+                                        ${isAttending ? '✓' : ''}
+                                    </div>
+                                    <span style="font-weight:700;">#${player.number || '-'}</span>
+                                    <span style="flex:1;">${player.name}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <button class="btn btn-primary btn-large" style="margin-top:16px;" onclick="this.closest('.modal-overlay').remove(); App.render();">完了</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    },
+    
+    async toggleAttendance(playerId) {
+        const game = App.currentGame;
+        if (!game.attendingPlayers) game.attendingPlayers = [];
+        
+        const index = game.attendingPlayers.indexOf(playerId);
+        if (index >= 0) {
+            game.attendingPlayers.splice(index, 1);
+        } else {
+            game.attendingPlayers.push(playerId);
+        }
+        
+        await this.saveGame();
+        
+        // モーダルを再描画
+        document.querySelector('.modal-overlay')?.remove();
+        this.showAttendanceEditor();
+    },
+    
     exitGame() {
         App.navigate('gameList', { currentTeam: App.currentTeam, currentYear: getYear(App.currentGame.date) });
     }
@@ -2424,12 +2638,14 @@ const InningEditView = {
                             <span class="pitcher-name-large">${pitcher.playerName}</span>
                         </div>
                         <div class="pitcher-edit-stats">
-                            <div class="pitcher-edit-stat">
+                            <div class="pitcher-edit-stat" style="grid-column: 1 / -1;">
                                 <div class="stat-label-small">投球回</div>
-                                <div class="counter-control-small">
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'inningsPitched', -1)">−</button>
-                                    <span>${formatInnings(pitcher.inningsPitched)}</span>
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'inningsPitched', 1)">＋</button>
+                                <div class="innings-control-detailed">
+                                    <button class="innings-btn" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', -1)">− 1回</button>
+                                    <button class="innings-btn-small" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', -0.1)">− 1/3</button>
+                                    <span class="innings-display">${formatInnings(pitcher.inningsPitched)}</span>
+                                    <button class="innings-btn-small" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', 0.1)">＋ 1/3</button>
+                                    <button class="innings-btn" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', 1)">＋ 1回</button>
                                 </div>
                             </div>
                             <div class="pitcher-edit-stat">
@@ -2495,6 +2711,44 @@ const InningEditView = {
         } else {
             pitcher[field] = Math.max(0, (pitcher[field] || 0) + amount);
         }
+        
+        const team = App.currentTeam;
+        const gameIndex = team.games.findIndex(g => g.id === game.id);
+        if (gameIndex >= 0) team.games[gameIndex] = game;
+        await App.saveTeam(team);
+        App.render();
+    },
+    
+    async adjustInningsFraction(playerId, amount) {
+        const game = App.currentGame;
+        const pitcher = game.pitchingRecords.find(r => r.playerId === playerId);
+        if (!pitcher) return;
+        
+        // 現在の投球回を取得（小数形式: 3.1 = 3回1/3）
+        let current = pitcher.inningsPitched;
+        
+        // 整数部分と小数部分を分離
+        const wholeInnings = Math.floor(current);
+        const fraction = Math.round((current - wholeInnings) * 10) / 10;
+        
+        // 変更を適用
+        let newValue = current + amount;
+        
+        // 小数部分を0, 0.1, 0.2に正規化（0/3, 1/3, 2/3）
+        const newWhole = Math.floor(newValue);
+        const newFraction = Math.round((newValue - newWhole) * 10) / 10;
+        
+        // 0.3以上になったら次のイニングへ
+        if (newFraction >= 0.3) {
+            newValue = newWhole + 1;
+        } else if (newFraction < 0) {
+            // マイナスになったら前のイニングの2/3へ
+            newValue = Math.max(0, newWhole - 1 + 0.2);
+        } else {
+            newValue = newWhole + newFraction;
+        }
+        
+        pitcher.inningsPitched = Math.max(0, newValue);
         
         const team = App.currentTeam;
         const gameIndex = team.games.findIndex(g => g.id === game.id);
