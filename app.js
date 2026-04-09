@@ -1058,36 +1058,42 @@ const GameListView = {
             ${yearStats.homeRunLeaders.length > 0 ? `
                 <div class="card">
                     <div class="card-title">🏆 ${year}年 成績トップ3</div>
-                    <div class="year-leaders">
-                        <div class="leader-section">
-                            <div class="leader-title">本塁打王</div>
-                            ${yearStats.homeRunLeaders.map((p, idx) => `
-                                <div class="leader-item">
-                                    <span class="leader-rank">${idx + 1}位</span>
-                                    <span class="leader-name">${p.name}</span>
-                                    <span class="leader-stat">${p.homeRuns}本</span>
-                                </div>
-                            `).join('')}
+                    <div class="year-leaders-compact">
+                        <div class="leader-section-compact">
+                            <div class="leader-title-compact">本塁打</div>
+                            <div class="leader-row-compact">
+                                ${yearStats.homeRunLeaders.map((p, idx) => `
+                                    <div class="leader-cell-compact ${idx === 0 ? 'first' : ''}">
+                                        <div class="leader-rank-compact">${idx + 1}</div>
+                                        <div class="leader-name-compact">${p.name}</div>
+                                        <div class="leader-value-compact">${p.homeRuns}本</div>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
-                        <div class="leader-section">
-                            <div class="leader-title">OPSトップ</div>
-                            ${yearStats.opsLeaders.map((p, idx) => `
-                                <div class="leader-item">
-                                    <span class="leader-rank">${idx + 1}位</span>
-                                    <span class="leader-name">${p.name}</span>
-                                    <span class="leader-stat">${p.ops}</span>
-                                </div>
-                            `).join('')}
+                        <div class="leader-section-compact">
+                            <div class="leader-title-compact">打率</div>
+                            <div class="leader-row-compact">
+                                ${yearStats.avgLeaders.map((p, idx) => `
+                                    <div class="leader-cell-compact ${idx === 0 ? 'first' : ''}">
+                                        <div class="leader-rank-compact">${idx + 1}</div>
+                                        <div class="leader-name-compact">${p.name}</div>
+                                        <div class="leader-value-compact">${p.avg}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
-                        <div class="leader-section">
-                            <div class="leader-title">出塁率トップ</div>
-                            ${yearStats.obpLeaders.map((p, idx) => `
-                                <div class="leader-item">
-                                    <span class="leader-rank">${idx + 1}位</span>
-                                    <span class="leader-name">${p.name}</span>
-                                    <span class="leader-stat">${p.obp}</span>
-                                </div>
-                            `).join('')}
+                        <div class="leader-section-compact">
+                            <div class="leader-title-compact">出塁率</div>
+                            <div class="leader-row-compact">
+                                ${yearStats.obpLeaders.map((p, idx) => `
+                                    <div class="leader-cell-compact ${idx === 0 ? 'first' : ''}">
+                                        <div class="leader-rank-compact">${idx + 1}</div>
+                                        <div class="leader-name-compact">${p.name}</div>
+                                        <div class="leader-value-compact">${p.obp}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1169,12 +1175,12 @@ const GameListView = {
                 ? ((stats.hits + stats.walks) / stats.plateAppearances).toFixed(3)
                 : '.000';
             
+            // 打率計算
+            stats.avg = stats.atBats > 0 ? (stats.hits / stats.atBats).toFixed(3) : '.000';
+            
             // SLG計算
             const totalBases = stats.singles + (stats.doubles * 2) + (stats.triples * 3) + (stats.homeRuns * 4);
             stats.slg = stats.atBats > 0 ? (totalBases / stats.atBats).toFixed(3) : '.000';
-            
-            // OPS計算
-            stats.ops = (parseFloat(stats.obp) + parseFloat(stats.slg)).toFixed(3);
             
             playerStats[player.id] = stats;
         });
@@ -1187,8 +1193,8 @@ const GameListView = {
             .sort((a, b) => b.homeRuns - a.homeRuns)
             .slice(0, 3);
         
-        const opsLeaders = allStats
-            .sort((a, b) => parseFloat(b.ops) - parseFloat(a.ops))
+        const avgLeaders = allStats
+            .sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg))
             .slice(0, 3);
         
         const obpLeaders = allStats
@@ -1197,7 +1203,7 @@ const GameListView = {
         
         return {
             homeRunLeaders,
-            opsLeaders,
+            avgLeaders,
             obpLeaders
         };
     },
@@ -1949,39 +1955,55 @@ const GameScoreView = {
                     </div>
                 </div>
                 
-                <div class="pitcher-section">
-                    <div class="section-title">投手成績</div>
-                    <div class="pitcher-stats-grid-compact">
-                        <div class="pitcher-stat-box">
-                            <div class="pitcher-stat-label">投球回</div>
-                            <div class="pitcher-stat-control">
-                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('inningsPitched', -1)">−</button>
-                                <span class="pitcher-stat-value">${formatInnings(currentPitcher.inningsPitched)}</span>
-                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('inningsPitched', 1)">＋</button>
+                <div class="pitcher-section-compact">
+                    <div class="innings-section-game">
+                        <div class="stat-label-game">投球回</div>
+                        <div class="innings-control-3rows-game">
+                            <div class="innings-row-game">
+                                <button class="innings-btn-game minus" onclick="GameScoreView.adjustInningsFraction(-1)">− 1回</button>
+                                <button class="innings-btn-game-small minus" onclick="GameScoreView.adjustInningsFraction(-0.1)">− 1/3</button>
+                            </div>
+                            <div class="innings-row-game">
+                                <span class="innings-display-game">${formatInnings(currentPitcher.inningsPitched)}</span>
+                            </div>
+                            <div class="innings-row-game">
+                                <button class="innings-btn-game-small plus" onclick="GameScoreView.adjustInningsFraction(0.1)">＋ 1/3</button>
+                                <button class="innings-btn-game plus" onclick="GameScoreView.adjustInningsFraction(1)">＋ 1回</button>
                             </div>
                         </div>
-                        <div class="pitcher-stat-box">
-                            <div class="pitcher-stat-label">奪三振</div>
-                            <div class="pitcher-stat-control">
-                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('strikeouts', -1)">−</button>
-                                <span class="pitcher-stat-value">${currentPitcher.strikeouts}</span>
-                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('strikeouts', 1)">＋</button>
+                    </div>
+                    
+                    <div class="pitcher-stats-row-game">
+                        <div class="pitcher-stat-mini">
+                            <div class="stat-label-mini">被安打</div>
+                            <div class="counter-mini">
+                                <button class="btn-mini minus" onclick="GameScoreView.adjustPitching('hitsAllowed', -1)">−</button>
+                                <span>${currentPitcher.hitsAllowed || 0}</span>
+                                <button class="btn-mini plus" onclick="GameScoreView.adjustPitching('hitsAllowed', 1)">＋</button>
                             </div>
                         </div>
-                        <div class="pitcher-stat-box">
-                            <div class="pitcher-stat-label">失点</div>
-                            <div class="pitcher-stat-control">
-                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('runsAllowed', -1)">−</button>
-                                <span class="pitcher-stat-value">${currentPitcher.runsAllowed}</span>
-                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('runsAllowed', 1)">＋</button>
+                        <div class="pitcher-stat-mini">
+                            <div class="stat-label-mini">奪三振</div>
+                            <div class="counter-mini">
+                                <button class="btn-mini minus" onclick="GameScoreView.adjustPitching('strikeouts', -1)">−</button>
+                                <span>${currentPitcher.strikeouts}</span>
+                                <button class="btn-mini plus" onclick="GameScoreView.adjustPitching('strikeouts', 1)">＋</button>
                             </div>
                         </div>
-                        <div class="pitcher-stat-box">
-                            <div class="pitcher-stat-label">自責点</div>
-                            <div class="pitcher-stat-control">
-                                <button class="counter-btn small minus" onclick="GameScoreView.adjustPitching('earnedRuns', -1)">−</button>
-                                <span class="pitcher-stat-value">${currentPitcher.earnedRuns}</span>
-                                <button class="counter-btn small plus" onclick="GameScoreView.adjustPitching('earnedRuns', 1)">＋</button>
+                        <div class="pitcher-stat-mini">
+                            <div class="stat-label-mini">失点</div>
+                            <div class="counter-mini">
+                                <button class="btn-mini minus" onclick="GameScoreView.adjustPitching('runsAllowed', -1)">−</button>
+                                <span>${currentPitcher.runsAllowed}</span>
+                                <button class="btn-mini plus" onclick="GameScoreView.adjustPitching('runsAllowed', 1)">＋</button>
+                            </div>
+                        </div>
+                        <div class="pitcher-stat-mini">
+                            <div class="stat-label-mini">自責点</div>
+                            <div class="counter-mini">
+                                <button class="btn-mini minus" onclick="GameScoreView.adjustPitching('earnedRuns', -1)">−</button>
+                                <span>${currentPitcher.earnedRuns}</span>
+                                <button class="btn-mini plus" onclick="GameScoreView.adjustPitching('earnedRuns', 1)">＋</button>
                             </div>
                         </div>
                     </div>
@@ -2306,6 +2328,32 @@ const GameScoreView = {
         App.render();
     },
     
+    async adjustInningsFraction(amount) {
+        const game = App.currentGame;
+        const record = game.pitchingRecords.find(r => r.playerId === game.currentPitcherId);
+        if (!record) return;
+        
+        let current = record.inningsPitched;
+        const wholeInnings = Math.floor(current);
+        const fraction = Math.round((current - wholeInnings) * 10) / 10;
+        
+        let newValue = current + amount;
+        const newWhole = Math.floor(newValue);
+        const newFraction = Math.round((newValue - newWhole) * 10) / 10;
+        
+        if (newFraction >= 0.3) {
+            newValue = newWhole + 1;
+        } else if (newFraction < 0) {
+            newValue = Math.max(0, newWhole - 1 + 0.2);
+        } else {
+            newValue = newWhole + newFraction;
+        }
+        
+        record.inningsPitched = Math.max(0, newValue);
+        await this.saveGame();
+        App.render();
+    },
+    
     showPitcherChange() {
         const team = App.currentTeam;
         const game = App.currentGame;
@@ -2549,10 +2597,20 @@ const InningEditView = {
     },
     
     renderBattingTab(team, game, inning, inningIndex) {
+        // 打席結果の色分けマッピング
+        const resultColorClass = (result) => {
+            const res = AtBatResults[result];
+            if (!res) return '';
+            if (res.type === 'hit') return 'result-hit'; // 緑
+            if (result === 'walk' || result === 'error') return 'result-walk'; // 青
+            if (result === 'sacrifice') return 'result-sacrifice'; // オレンジ
+            if (result === 'out' || result === 'doublePlay' || result === 'triplePlay') return 'result-out'; // オレンジ
+            return '';
+        };
+        
         return `
             <div class="card">
-                <div class="card-title">${team.name}の攻撃</div>
-                <div style="display:flex;gap:20px;justify-content:center;">
+                <div style="display:flex;gap:20px;justify-content:center;margin-bottom:20px;">
                     <div style="text-align:center;">
                         <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">得点</div>
                         <div class="counter-control">
@@ -2570,13 +2628,9 @@ const InningEditView = {
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-title">${game.opponent}の攻撃</div>
                 <div style="display:flex;gap:20px;justify-content:center;">
                     <div style="text-align:center;">
-                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">得点</div>
+                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">相手得点</div>
                         <div class="counter-control">
                             <button onclick="InningEditView.adjust('opponentRuns', -1)">−</button>
                             <span>${inning.opponentRuns || 0}</span>
@@ -2598,9 +2652,9 @@ const InningEditView = {
                 <div class="card">
                     <div class="card-title">打席結果</div>
                     ${inning.atBats.map((ab, idx) => {
-                        // 打順を取得
                         const batterOrder = game.battingOrder.findIndex(b => b.id === ab.playerId);
                         const orderText = batterOrder >= 0 ? `${batterOrder + 1}番` : '代打';
+                        const colorClass = resultColorClass(ab.result);
                         
                         return `
                             <div class="at-bat-item" onclick="InningEditView.editAtBat(${idx})">
@@ -2608,7 +2662,7 @@ const InningEditView = {
                                     <span class="batting-order-badge">${orderText}</span>
                                     <span class="at-bat-player">${ab.playerName}</span>
                                 </div>
-                                <span class="at-bat-result ${AtBatResults[ab.result]?.type || 'out'}">${AtBatResults[ab.result]?.icon || ab.result}</span>
+                                <span class="at-bat-result ${colorClass}">${AtBatResults[ab.result]?.icon || ab.result}</span>
                                 <div class="at-bat-stats">
                                     ${ab.rbi > 0 ? `<span class="stat-badge rbi">打点${ab.rbi}</span>` : ''}
                                     ${ab.stolenBases > 0 ? `<span class="stat-badge steal">盗${ab.stolenBases}</span>` : ''}
@@ -2638,38 +2692,46 @@ const InningEditView = {
                             <span class="pitcher-name-large">${pitcher.playerName}</span>
                         </div>
                         <div class="pitcher-edit-stats">
-                            <div class="pitcher-edit-stat" style="grid-column: 1 / -1;">
+                            <div class="pitcher-edit-stat-full">
                                 <div class="stat-label-small">投球回</div>
-                                <div class="innings-control-detailed">
-                                    <button class="innings-btn" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', -1)">− 1回</button>
-                                    <button class="innings-btn-small" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', -0.1)">− 1/3</button>
-                                    <span class="innings-display">${formatInnings(pitcher.inningsPitched)}</span>
-                                    <button class="innings-btn-small" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', 0.1)">＋ 1/3</button>
-                                    <button class="innings-btn" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', 1)">＋ 1回</button>
+                                <div class="innings-control-3rows">
+                                    <div class="innings-row">
+                                        <button class="innings-btn minus" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', -1)">− 1回</button>
+                                        <button class="innings-btn-small minus" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', -0.1)">− 1/3</button>
+                                    </div>
+                                    <div class="innings-row">
+                                        <span class="innings-display-large">${formatInnings(pitcher.inningsPitched)}</span>
+                                    </div>
+                                    <div class="innings-row">
+                                        <button class="innings-btn-small plus" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', 0.1)">＋ 1/3</button>
+                                        <button class="innings-btn plus" onclick="InningEditView.adjustInningsFraction('${pitcher.playerId}', 1)">＋ 1回</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="pitcher-edit-stat">
-                                <div class="stat-label-small">奪三振</div>
-                                <div class="counter-control-small">
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'strikeouts', -1)">−</button>
-                                    <span>${pitcher.strikeouts}</span>
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'strikeouts', 1)">＋</button>
+                            <div class="pitcher-stats-row">
+                                <div class="pitcher-stat-compact">
+                                    <div class="stat-label-small">奪三振</div>
+                                    <div class="counter-control-mini">
+                                        <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'strikeouts', -1)">−</button>
+                                        <span>${pitcher.strikeouts}</span>
+                                        <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'strikeouts', 1)">＋</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="pitcher-edit-stat">
-                                <div class="stat-label-small">失点</div>
-                                <div class="counter-control-small">
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'runsAllowed', -1)">−</button>
-                                    <span>${pitcher.runsAllowed}</span>
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'runsAllowed', 1)">＋</button>
+                                <div class="pitcher-stat-compact">
+                                    <div class="stat-label-small">失点</div>
+                                    <div class="counter-control-mini">
+                                        <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'runsAllowed', -1)">−</button>
+                                        <span>${pitcher.runsAllowed}</span>
+                                        <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'runsAllowed', 1)">＋</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="pitcher-edit-stat">
-                                <div class="stat-label-small">自責点</div>
-                                <div class="counter-control-small">
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'earnedRuns', -1)">−</button>
-                                    <span>${pitcher.earnedRuns}</span>
-                                    <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'earnedRuns', 1)">＋</button>
+                                <div class="pitcher-stat-compact">
+                                    <div class="stat-label-small">自責点</div>
+                                    <div class="counter-control-mini">
+                                        <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'earnedRuns', -1)">−</button>
+                                        <span>${pitcher.earnedRuns}</span>
+                                        <button onclick="InningEditView.adjustPitching('${pitcher.playerId}', 'earnedRuns', 1)">＋</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
