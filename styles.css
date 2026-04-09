@@ -3923,3 +3923,413 @@ body {
         min-width: 40px;
     }
 }
+
+/* ========================================
+   投球回3段レイアウト（編集画面）
+   ======================================== */
+
+.pitcher-edit-stat-full {
+    grid-column: 1 / -1;
+    background: var(--bg-color);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.innings-control-3rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.innings-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.innings-btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 2px solid;
+    background: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.innings-btn.minus {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.innings-btn.plus {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.innings-btn:active {
+    transform: scale(0.95);
+}
+
+.innings-btn-small {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 2px solid;
+    background: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.innings-btn-small.minus {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.innings-btn-small.plus {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.innings-display-large {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 80px;
+    text-align: center;
+}
+
+.pitcher-stats-row {
+    display: flex;
+    gap: 8px;
+    grid-column: 1 / -1;
+}
+
+.pitcher-stat-compact {
+    flex: 1;
+    background: white;
+    padding: 12px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.counter-control-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.counter-control-mini button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    background: white;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.counter-control-mini span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* ========================================
+   試合中投球回3段レイアウト
+   ======================================== */
+
+.pitcher-section-compact {
+    padding: 16px;
+    background: var(--bg-color);
+    border-radius: 12px;
+    margin: 16px;
+}
+
+.innings-section-game {
+    margin-bottom: 16px;
+}
+
+.stat-label-game {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.innings-control-3rows-game {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.innings-row-game {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.innings-btn-game {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 2px solid;
+    background: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.innings-btn-game.minus {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.innings-btn-game.plus {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.innings-btn-game-small {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 2px solid;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.innings-btn-game-small.minus {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.innings-btn-game-small.plus {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.innings-display-game {
+    font-size: 1.5rem;
+    font-weight: 700;
+    min-width: 70px;
+    text-align: center;
+}
+
+.pitcher-stats-row-game {
+    display: flex;
+    gap: 8px;
+}
+
+.pitcher-stat-mini {
+    flex: 1;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.stat-label-mini {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.counter-mini {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-mini {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 2px solid;
+    background: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-mini.minus {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.btn-mini.plus {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.counter-mini span {
+    font-size: 1rem;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* ========================================
+   打席結果の色分け
+   ======================================== */
+
+.result-hit {
+    background: #10b981 !important;
+    color: white !important;
+}
+
+.result-walk {
+    background: #3b82f6 !important;
+    color: white !important;
+}
+
+.result-sacrifice,
+.result-out {
+    background: #f97316 !important;
+    color: white !important;
+}
+
+/* 三振は既存のstrikeoutクラスを使用（赤） */
+
+/* ========================================
+   年間リーダー2列レイアウト
+   ======================================== */
+
+.year-leaders-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.leader-section-compact {
+    background: var(--bg-color);
+    padding: 14px;
+    border-radius: 12px;
+}
+
+.leader-title-compact {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.leader-row-compact {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.leader-cell-compact {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.leader-cell-compact.first {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.leader-rank-compact {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.leader-cell-compact.first .leader-rank-compact {
+    color: #f59e0b;
+}
+
+.leader-name-compact {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.leader-value-compact {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.leader-cell-compact.first .leader-value-compact {
+    color: #f59e0b;
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   スタメン登録画面のスクロール対応
+   ======================================== */
+
+.lineup-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: calc(100vh - 200px);
+    overflow: hidden;
+}
+
+.lineup-section {
+    flex-shrink: 0;
+}
+
+.bench-section {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.bench-players {
+    max-height: none !important;
+    overflow-y: visible !important;
+}
+
+@media screen and (max-width: 375px) {
+    .innings-btn {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
+    
+    .innings-btn-small {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .innings-display-large {
+        font-size: 1.5rem;
+        min-width: 70px;
+    }
+    
+    .pitcher-stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .pitcher-stats-row-game {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .leader-row-compact {
+        grid-template-columns: 1fr;
+    }
+}
