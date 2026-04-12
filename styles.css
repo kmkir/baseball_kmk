@@ -4333,3 +4333,165 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================================
+   成績表のスタイル
+   ======================================== */
+
+.stats-table-card {
+    padding: 16px;
+}
+
+.stats-category {
+    margin-bottom: 20px;
+}
+
+.stats-category:last-child {
+    margin-bottom: 0;
+}
+
+.category-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.stats-row-single {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.stat-cell {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border: 2px solid var(--border-color);
+}
+
+.stat-cell.first {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #f59e0b;
+}
+
+.stat-rank {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.stat-cell.first .stat-rank {
+    color: #f59e0b;
+}
+
+.stat-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-cell.first .stat-value {
+    color: #f59e0b;
+    font-size: 1.05rem;
+}
+
+/* ========================================
+   ピッチング編集のサイズ調整
+   ======================================== */
+
+.pitcher-edit-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pitcher-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.pitcher-stat-compact {
+    padding: 8px;
+    min-width: 0;
+}
+
+.stat-label-small {
+    font-size: 0.7rem;
+    margin-bottom: 4px;
+}
+
+.counter-control-mini {
+    gap: 4px;
+}
+
+.counter-control-mini button {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+}
+
+.counter-control-mini span {
+    font-size: 0.95rem;
+    min-width: 26px;
+}
+
+@media screen and (max-width: 375px) {
+    .stats-row-single {
+        gap: 6px;
+    }
+    
+    .stat-cell {
+        padding: 8px 6px;
+    }
+    
+    .stat-name {
+        font-size: 0.75rem;
+    }
+    
+    .stat-value {
+        font-size: 0.85rem;
+    }
+    
+    .stat-cell.first .stat-value {
+        font-size: 0.95rem;
+    }
+    
+    .pitcher-stats-row {
+        gap: 4px;
+    }
+    
+    .pitcher-stat-compact {
+        padding: 6px 4px;
+    }
+    
+    .stat-label-small {
+        font-size: 0.65rem;
+    }
+    
+    .counter-control-mini button {
+        width: 26px;
+        height: 26px;
+        font-size: 0.9rem;
+    }
+    
+    .counter-control-mini span {
+        font-size: 0.85rem;
+        min-width: 22px;
+    }
+}
