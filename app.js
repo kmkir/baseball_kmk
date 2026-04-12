@@ -1034,6 +1034,8 @@ const YearListView = {
 // ========================================
 
 const GameListView = {
+    showStatsTable: false,
+    
     render(team, year) {
         const games = (team.games || []).filter(g => getYear(g.date) === year).sort((a, b) => new Date(b.date) - new Date(a.date));
         const wins = games.filter(g => g.teamTotalRuns > g.opponentTotalRuns).length;
@@ -1055,51 +1057,83 @@ const GameListView = {
                 </div>
             </div>
             
+            <div class="card">
+                <button class="btn btn-primary" onclick="GameSetupView.reset(); App.navigate('gameSetup', { currentTeam: App.currentTeam })">＋ 試合を追加</button>
+            </div>
+            
             ${yearStats.homeRunLeaders.length > 0 ? `
                 <div class="card">
-                    <div class="card-title">🏆 ${year}年 成績トップ3</div>
-                    <div class="year-leaders-compact">
-                        <div class="leader-section-compact">
-                            <div class="leader-title-compact">本塁打</div>
-                            <div class="leader-row-compact">
+                    <button class="btn btn-outline" onclick="GameListView.toggleStatsTable()">
+                        ${this.showStatsTable ? '📊 成績表を閉じる' : '📊 成績表を見る'}
+                    </button>
+                </div>
+                
+                ${this.showStatsTable ? `
+                    <div class="card stats-table-card">
+                        <div class="card-title">🏆 ${year}年 成績ベスト3</div>
+                        <div class="stats-category">
+                            <div class="category-title">本塁打</div>
+                            <div class="stats-row-single">
                                 ${yearStats.homeRunLeaders.map((p, idx) => `
-                                    <div class="leader-cell-compact ${idx === 0 ? 'first' : ''}">
-                                        <div class="leader-rank-compact">${idx + 1}</div>
-                                        <div class="leader-name-compact">${p.name}</div>
-                                        <div class="leader-value-compact">${p.homeRuns}本</div>
+                                    <div class="stat-cell ${idx === 0 ? 'first' : ''}">
+                                        <div class="stat-rank">${idx + 1}位</div>
+                                        <div class="stat-name">${p.name}</div>
+                                        <div class="stat-value">${p.homeRuns}本</div>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
-                        <div class="leader-section-compact">
-                            <div class="leader-title-compact">打率</div>
-                            <div class="leader-row-compact">
+                        <div class="stats-category">
+                            <div class="category-title">打率</div>
+                            <div class="stats-row-single">
                                 ${yearStats.avgLeaders.map((p, idx) => `
-                                    <div class="leader-cell-compact ${idx === 0 ? 'first' : ''}">
-                                        <div class="leader-rank-compact">${idx + 1}</div>
-                                        <div class="leader-name-compact">${p.name}</div>
-                                        <div class="leader-value-compact">${p.avg}</div>
+                                    <div class="stat-cell ${idx === 0 ? 'first' : ''}">
+                                        <div class="stat-rank">${idx + 1}位</div>
+                                        <div class="stat-name">${p.name}</div>
+                                        <div class="stat-value">${p.avg}</div>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
-                        <div class="leader-section-compact">
-                            <div class="leader-title-compact">出塁率</div>
-                            <div class="leader-row-compact">
+                        <div class="stats-category">
+                            <div class="category-title">出塁率</div>
+                            <div class="stats-row-single">
                                 ${yearStats.obpLeaders.map((p, idx) => `
-                                    <div class="leader-cell-compact ${idx === 0 ? 'first' : ''}">
-                                        <div class="leader-rank-compact">${idx + 1}</div>
-                                        <div class="leader-name-compact">${p.name}</div>
-                                        <div class="leader-value-compact">${p.obp}</div>
+                                    <div class="stat-cell ${idx === 0 ? 'first' : ''}">
+                                        <div class="stat-rank">${idx + 1}位</div>
+                                        <div class="stat-name">${p.name}</div>
+                                        <div class="stat-value">${p.obp}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="stats-category">
+                            <div class="category-title">打点</div>
+                            <div class="stats-row-single">
+                                ${yearStats.rbiLeaders.map((p, idx) => `
+                                    <div class="stat-cell ${idx === 0 ? 'first' : ''}">
+                                        <div class="stat-rank">${idx + 1}位</div>
+                                        <div class="stat-name">${p.name}</div>
+                                        <div class="stat-value">${p.rbis}点</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="stats-category">
+                            <div class="category-title">安打</div>
+                            <div class="stats-row-single">
+                                ${yearStats.hitLeaders.map((p, idx) => `
+                                    <div class="stat-cell ${idx === 0 ? 'first' : ''}">
+                                        <div class="stat-rank">${idx + 1}位</div>
+                                        <div class="stat-name">${p.name}</div>
+                                        <div class="stat-value">${p.hits}本</div>
                                     </div>
                                 `).join('')}
                             </div>
                         </div>
                     </div>
-                </div>
+                ` : ''}
             ` : ''}
-            
-            <div class="card"><button class="btn btn-primary" onclick="GameSetupView.reset(); App.navigate('gameSetup', { currentTeam: App.currentTeam })">＋ 試合を追加</button></div>
             ${games.length === 0 ? `<div class="empty-state"><div class="empty-state-icon">⚾</div><div class="empty-state-text">${year}年の試合はありません</div></div>` : games.map(game => {
                 const isWin = game.teamTotalRuns > game.opponentTotalRuns;
                 const isLoss = game.teamTotalRuns < game.opponentTotalRuns;
@@ -1140,7 +1174,8 @@ const GameListView = {
                 homeRuns: 0,
                 singles: 0,
                 doubles: 0,
-                triples: 0
+                triples: 0,
+                rbis: 0
             };
             
             yearGames.forEach(game => {
@@ -1148,6 +1183,8 @@ const GameListView = {
                     (inning.atBats || []).forEach(ab => {
                         if (ab.playerId === player.id) {
                             stats.plateAppearances++;
+                            stats.rbis += ab.rbi || 0;
+                            
                             switch (ab.result) {
                                 case 'single':
                                     stats.atBats++; stats.hits++; stats.singles++; break;
@@ -1158,11 +1195,14 @@ const GameListView = {
                                 case 'homeRun':
                                     stats.atBats++; stats.hits++; stats.homeRuns++; break;
                                 case 'walk':
-                                case 'error':
                                     stats.walks++; break;
+                                case 'error':
+                                    // エラーは出塁だが、打席数・四球にはカウントしない
+                                    break;
                                 case 'out':
                                 case 'doublePlay':
                                 case 'triplePlay':
+                                case 'strikeout':
                                     stats.atBats++; break;
                             }
                         }
@@ -1201,11 +1241,28 @@ const GameListView = {
             .sort((a, b) => parseFloat(b.obp) - parseFloat(a.obp))
             .slice(0, 3);
         
+        const rbiLeaders = allStats
+            .filter(s => s.rbis > 0)
+            .sort((a, b) => b.rbis - a.rbis)
+            .slice(0, 3);
+        
+        const hitLeaders = allStats
+            .filter(s => s.hits > 0)
+            .sort((a, b) => b.hits - a.hits)
+            .slice(0, 3);
+        
         return {
             homeRunLeaders,
             avgLeaders,
-            obpLeaders
+            obpLeaders,
+            rbiLeaders,
+            hitLeaders
         };
+    },
+    
+    toggleStatsTable() {
+        this.showStatsTable = !this.showStatsTable;
+        App.render();
     },
     
     async deleteGame(gameId) {
@@ -2609,45 +2666,6 @@ const InningEditView = {
         };
         
         return `
-            <div class="card">
-                <div style="display:flex;gap:20px;justify-content:center;margin-bottom:20px;">
-                    <div style="text-align:center;">
-                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">得点</div>
-                        <div class="counter-control">
-                            <button onclick="InningEditView.adjust('teamRuns', -1)">−</button>
-                            <span>${inning.teamRuns || 0}</span>
-                            <button onclick="InningEditView.adjust('teamRuns', 1)">＋</button>
-                        </div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">安打</div>
-                        <div class="counter-control">
-                            <button onclick="InningEditView.adjust('teamHits', -1)">−</button>
-                            <span>${inning.teamHits || 0}</span>
-                            <button onclick="InningEditView.adjust('teamHits', 1)">＋</button>
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex;gap:20px;justify-content:center;">
-                    <div style="text-align:center;">
-                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">相手得点</div>
-                        <div class="counter-control">
-                            <button onclick="InningEditView.adjust('opponentRuns', -1)">−</button>
-                            <span>${inning.opponentRuns || 0}</span>
-                            <button onclick="InningEditView.adjust('opponentRuns', 1)">＋</button>
-                        </div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">被安打</div>
-                        <div class="counter-control">
-                            <button onclick="InningEditView.adjust('opponentHits', -1)">−</button>
-                            <span>${inning.opponentHits || 0}</span>
-                            <button onclick="InningEditView.adjust('opponentHits', 1)">＋</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
             ${(inning.atBats || []).length > 0 ? `
                 <div class="card">
                     <div class="card-title">打席結果</div>
@@ -2671,7 +2689,7 @@ const InningEditView = {
                         `;
                     }).join('')}
                 </div>
-            ` : ''}
+            ` : '<div class="card"><div class="empty-state-text">打席結果がありません</div></div>'}
         `;
     },
     
