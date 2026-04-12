@@ -1064,7 +1064,7 @@ const GameListView = {
             ${yearStats.homeRunLeaders.length > 0 ? `
                 <div class="card">
                     <button class="btn btn-outline" onclick="GameListView.toggleStatsTable()">
-                        ${this.showStatsTable ? '📊 成績表を閉じる' : '📊 成績表を見る'}
+                        ${this.showStatsTable ? '成績表を閉じる' : '成績表を開く'}
                     </button>
                 </div>
                 
