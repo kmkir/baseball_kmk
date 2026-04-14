@@ -1064,7 +1064,7 @@ const GameListView = {
             ${yearStats.homeRunLeaders.length > 0 ? `
                 <div class="card">
                     <button class="btn btn-outline" onclick="GameListView.toggleStatsTable()">
-                        ${this.showStatsTable ? '成績表を閉じる' : '成績表を開く'}
+                        ${this.showStatsTable ? '📊 成績表を閉じる' : '📊 成績表を見る'}
                     </button>
                 </div>
                 
@@ -1800,6 +1800,10 @@ const GameScoreView = {
     renderFinishedGame(team, game) {
         const isWin = game.teamTotalRuns > game.opponentTotalRuns;
         const isLoss = game.teamTotalRuns < game.opponentTotalRuns;
+        
+        // 打撃成績を集計
+        const battingStats = this.calculateGameBattingStats(game);
+        
         return `
             <div class="header"><div class="header-with-back">
                 <button class="back-button" onclick="GameScoreView.exitGame()">←</button>
@@ -1819,6 +1823,31 @@ const GameScoreView = {
                     </div>
                 </div>
             </div>
+            
+            ${battingStats.length > 0 ? `
+                <div class="card">
+                    <div class="card-title">打撃成績</div>
+                    <div class="batting-stats-table">
+                        <div class="stats-table-header">
+                            <div class="stats-header-cell name">選手</div>
+                            <div class="stats-header-cell">打数</div>
+                            <div class="stats-header-cell">安打</div>
+                            <div class="stats-header-cell">打点</div>
+                            <div class="stats-header-cell">HR</div>
+                        </div>
+                        ${battingStats.map(stat => `
+                            <div class="stats-table-row">
+                                <div class="stats-cell name">${stat.name}</div>
+                                <div class="stats-cell">${stat.atBats}</div>
+                                <div class="stats-cell">${stat.hits}</div>
+                                <div class="stats-cell">${stat.rbi}</div>
+                                <div class="stats-cell">${stat.homeRuns}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
             <div class="card">
                 <button class="btn btn-primary" onclick="GameScoreView.showAttendanceEditor()">参加メンバーを編集</button>
             </div>
@@ -1826,6 +1855,63 @@ const GameScoreView = {
                 <button class="btn btn-outline" onclick="GameScoreView.resumeGame()">試合を再開</button>
             </div>
         `;
+    },
+    
+    calculateGameBattingStats(game) {
+        const playerStats = {};
+        
+        // 全イニングから打席データを集計
+        (game.innings || []).forEach(inning => {
+            (inning.atBats || []).forEach(ab => {
+                if (!playerStats[ab.playerId]) {
+                    playerStats[ab.playerId] = {
+                        playerId: ab.playerId,
+                        name: ab.playerName,
+                        atBats: 0,
+                        hits: 0,
+                        rbi: 0,
+                        homeRuns: 0
+                    };
+                }
+                
+                const stat = playerStats[ab.playerId];
+                
+                // 打数をカウント
+                if (['single', 'double', 'triple', 'homeRun', 'out', 'doublePlay', 'triplePlay', 'strikeout'].includes(ab.result)) {
+                    stat.atBats++;
+                }
+                
+                // 安打をカウント
+                if (['single', 'double', 'triple', 'homeRun'].includes(ab.result)) {
+                    stat.hits++;
+                }
+                
+                // 本塁打をカウント
+                if (ab.result === 'homeRun') {
+                    stat.homeRuns++;
+                }
+                
+                // 打点を加算
+                stat.rbi += ab.rbi || 0;
+            });
+        });
+        
+        // 打順順に並べる
+        const orderedStats = [];
+        game.battingOrder.forEach(batter => {
+            if (playerStats[batter.id]) {
+                orderedStats.push(playerStats[batter.id]);
+            }
+        });
+        
+        // 打順にいない選手（代打など）を追加
+        Object.values(playerStats).forEach(stat => {
+            if (!orderedStats.find(s => s.playerId === stat.playerId)) {
+                orderedStats.push(stat);
+            }
+        });
+        
+        return orderedStats;
     },
     
     renderScoreboard(team, game) {
@@ -1895,13 +1981,13 @@ const GameScoreView = {
                                 <div class="history-item-simple" onclick="GameScoreView.showEditAtBatModal(${idx})">
                                     <span class="history-order-simple">${batterOrder}番</span>
                                     <span class="history-name-simple">${ab.playerName}</span>
-                                    <span class="history-result-simple">${AtBatResults[ab.result].name}</span>
-                                    ${ab.rbi > 0 || ab.stolenBases > 0 ? `
+                                    ${ab.stolenBases > 0 || ab.rbi > 0 ? `
                                         <span class="history-stats-simple">
-                                            ${ab.rbi > 0 ? `<span class="history-stat-badge rbi">打${ab.rbi}</span>` : ''}
                                             ${ab.stolenBases > 0 ? `<span class="history-stat-badge steal">盗${ab.stolenBases}</span>` : ''}
+                                            ${ab.rbi > 0 ? `<span class="history-stat-badge rbi">打${ab.rbi}</span>` : ''}
                                         </span>
                                     ` : ''}
+                                    <span class="history-result-simple">${AtBatResults[ab.result].name}</span>
                                 </div>
                             `;
                         }).join('')}
