@@ -4495,3 +4495,151 @@ body {
         min-width: 22px;
     }
 }
+
+/* ========================================
+   打撃成績マトリックス
+   ======================================== */
+
+.batting-stats-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.stats-table-header,
+.stats-table-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.stats-table-header {
+    background: var(--bg-color);
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.stats-table-row:last-child {
+    border-bottom: none;
+}
+
+.stats-header-cell,
+.stats-cell {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-header-cell.name,
+.stats-cell.name {
+    justify-content: flex-start;
+    font-weight: 700;
+}
+
+.stats-cell {
+    font-size: 0.95rem;
+}
+
+/* ========================================
+   イニング履歴の配置調整
+   ======================================== */
+
+.history-item-simple {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 10px 12px;
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.history-order-simple {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.history-name-simple {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.history-stats-simple {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.history-stat-badge {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.history-stat-badge.steal {
+    background: #3b82f6;
+    color: white;
+}
+
+.history-stat-badge.rbi {
+    background: #10b981;
+    color: white;
+}
+
+.history-result-simple {
+    background: var(--bg-color);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media screen and (max-width: 375px) {
+    .stats-table-header,
+    .stats-table-row {
+        grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr 0.8fr;
+        gap: 4px;
+        padding: 8px 4px;
+        font-size: 0.8rem;
+    }
+    
+    .stats-header-cell,
+    .stats-cell {
+        font-size: 0.75rem;
+    }
+    
+    .history-item-simple {
+        gap: 6px;
+        padding: 8px 10px;
+    }
+    
+    .history-order-simple {
+        padding: 3px 6px;
+        font-size: 0.7rem;
+    }
+    
+    .history-name-simple {
+        font-size: 0.85rem;
+    }
+    
+    .history-result-simple {
+        padding: 3px 8px;
+        font-size: 0.8rem;
+    }
+}
